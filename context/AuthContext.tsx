@@ -1,4 +1,5 @@
 "use client";
+
 import {
   createContext,
   useContext,
@@ -23,6 +24,7 @@ type AuthContextType = {
   totalPoint: number | null;
   setTotalPoint: (totalPoint: number | null) => void;
   clearAuth: () => void;
+  loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -35,6 +37,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [email, setEmail] = useState<string | null>(null);
   const [completedCourse, setCompletedCourse] = useState<string[] | null>(null);
   const [totalPoint, setTotalPoint] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // ⬇️ Restore from localStorage on load
+  useEffect(() => {
+    setUid(localStorage.getItem("uid"));
+    setUsername(localStorage.getItem("username"));
+    setRole(localStorage.getItem("role"));
+    setAvatarURL(localStorage.getItem("avatarURL"));
+    setEmail(localStorage.getItem("email"));
+
+    const storedCourse = localStorage.getItem("completedCourse");
+    if (storedCourse) setCompletedCourse(JSON.parse(storedCourse));
+
+    const storedPoint = localStorage.getItem("totalPoint");
+    if (storedPoint) setTotalPoint(parseInt(storedPoint));
+    setLoading(false);
+  }, []);
+
+  // ⬇️ Sync ke localStorage tiap kali berubah
+  useEffect(() => {
+    uid !== null
+      ? localStorage.setItem("uid", uid)
+      : localStorage.removeItem("uid");
+  }, [uid]);
+
+  useEffect(() => {
+    username !== null
+      ? localStorage.setItem("username", username)
+      : localStorage.removeItem("username");
+  }, [username]);
+
+  useEffect(() => {
+    role !== null
+      ? localStorage.setItem("role", role)
+      : localStorage.removeItem("role");
+  }, [role]);
+
+  useEffect(() => {
+    avatarURL !== null
+      ? localStorage.setItem("avatarURL", avatarURL)
+      : localStorage.removeItem("avatarURL");
+  }, [avatarURL]);
+
+  useEffect(() => {
+    email !== null
+      ? localStorage.setItem("email", email)
+      : localStorage.removeItem("email");
+  }, [email]);
+
+  useEffect(() => {
+    completedCourse !== null
+      ? localStorage.setItem("completedCourse", JSON.stringify(completedCourse))
+      : localStorage.removeItem("completedCourse");
+  }, [completedCourse]);
+
+  useEffect(() => {
+    totalPoint !== null
+      ? localStorage.setItem("totalPoint", totalPoint.toString())
+      : localStorage.removeItem("totalPoint");
+  }, [totalPoint]);
+
   const clearAuth = () => {
     setUid(null);
     setUsername(null);
@@ -52,21 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("completedCourse");
     localStorage.removeItem("totalPoint");
   };
-
-  useEffect(() => {
-    const fromLS = (key: string) => localStorage.getItem(key);
-    setUid(fromLS("uid"));
-    setUsername(fromLS("username"));
-    setRole(fromLS("role"));
-    setAvatarURL(fromLS("avatarURL"));
-    setEmail(fromLS("email"));
-
-    const storedCourse = fromLS("completedCourse");
-    if (storedCourse) setCompletedCourse(JSON.parse(storedCourse));
-
-    const storedPoint = fromLS("totalPoint");
-    if (storedPoint) setTotalPoint(parseInt(storedPoint));
-  }, []);
 
   return (
     <AuthContext.Provider
@@ -86,6 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         totalPoint,
         setTotalPoint,
         clearAuth,
+        loading,
       }}
     >
       {children}

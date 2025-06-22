@@ -24,6 +24,7 @@ export async function registerUser(email: string, password: string) {
       active: true,
       role: "user",
       avatarURL: "",
+      username: user.email ? user.email.split("@")[0] : "",
     });
 
     return { success: true, user };

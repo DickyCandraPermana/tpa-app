@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body
-        className={`${inter.className} bg-gradient-to-br from-indigo-100 to-indigo-300 text-gray-900`}
+        className={`${inter.className} bg-gradient-to-br bg-cover bg-no-repeat h-screen from-indigo-100 to-indigo-300 text-gray-900`}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>

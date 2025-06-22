@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { registerUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Container from "@/components/Container";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [err, setErr] = useState("");
+  const { uid } = useAuth();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +42,12 @@ export default function RegisterPage() {
       setErr(err.message);
     }
   };
+
+  useEffect(() => {
+    if (uid) {
+      router.push("/dashboard");
+    }
+  }, [uid, router]);
 
   return (
     <Container title="Register" description="">

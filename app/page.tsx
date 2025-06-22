@@ -9,8 +9,8 @@ export default function Home() {
         Selamat Datang di TPA Interaktif
       </h1>
       <p className="max-w-xl mb-8 text-lg text-center text-gray-700">
-        Latih kemampuanmu membaca Al-Qur'an,
-        dan kumpulkan poin untuk ditukar hadiah!
+        Latih kemampuanmu membaca Al-Qur'an, dan kumpulkan poin untuk ditukar
+        hadiah!
       </p>
 
       <div className="flex flex-wrap justify-center gap-4">
@@ -25,7 +25,7 @@ export default function Home() {
           href="/poin"
           className="px-6 py-3 font-semibold text-indigo-600 transition bg-white border border-indigo-300 shadow hover:bg-gray-100 rounded-xl"
         >
-          Lihat Poin
+          About
         </Link>
 
         <Link

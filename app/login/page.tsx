@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loginUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -14,6 +14,7 @@ export default function LoginPage() {
     setEmail,
     setCompletedCourse,
     setTotalPoint,
+    uid,
   } = useAuth();
   const router = useRouter();
   const [email, setEmailLogin] = useState("");
@@ -45,6 +46,12 @@ export default function LoginPage() {
       setErr(err.message);
     }
   };
+
+  useEffect(() => {
+    if (uid) {
+      router.push("/dashboard");
+    }
+  }, [uid, router]);
 
   return (
     <Container title="Login" description="">

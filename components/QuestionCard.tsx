@@ -1,82 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { useState } from "react";
 
-type Question = {
-  id: string;
-  correctAnswer: string;
-  courseId: string;
+interface QuestionCardProps {
+  question: string;
   options: string[];
-  points: number;
-  prompt: string;
-  tags: string[];
-  type: string;
-};
+  answer: string;
+  imageUrl: string;
+  audioUrl: string;
+  selected: string | null;
+  onOptionClick: (option: string) => void;
+}
 
-export default function QuestionCard({ courseId }: { courseId: string }) {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [selected, setSelected] = useState<{ [key: string]: string }>({});
+interface OptionProps {
+  opt: string;
+  onClick: (option: string) => void;
+  selected: boolean;
+}
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      const q = query(
-        collection(db, "questions"),
-        where("courseId", "==", courseId)
-      );
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Question[];
-      setQuestions(data);
-    };
+const Option = ({ opt, onClick, selected }: OptionProps) => {
+  const [isHovered, setIsHovered] = useState(false);
 
-    fetchQuestions();
-  }, [courseId]);
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
 
-  const handleSelect = (questionId: string, option: string) => {
-    setSelected((prev) => ({ ...prev, [questionId]: option }));
+  const handleMouseLeave = () => {
+    setIsHovered(false);
   };
 
   return (
-    <div className="grid grid-cols-1  gap-6">
-      {questions.map((q) => (
-        <div key={q.id} className="p-6 bg-gray-200 shadow-md rounded-xl">
-          <img
-            src={q.prompt}
-            alt="Soal"
-            className="object-contain w-32 h-32 mb-4"
-          />
-          <p>{q.prompt}</p>
-          <div className="space-y-2">
-            {q.options.map((opt, i) => {
-              const isSelected = selected[q.id] === opt;
-              const isCorrect = q.correctAnswer === opt;
+    <button
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => onClick(opt)}
+      className={`block w-full text-left p-3 rounded-md border transition
+        ${
+          isHovered
+            ? "bg-green-100 border-green-500"
+            : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+        } 
+        ${
+          selected
+            ? "bg-green-100 border-green-500"
+            : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+        }
+      `}
+    >
+      {opt}
+    </button>
+  );
+};
 
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleSelect(q.id, opt)}
-                  className={`block w-full text-left p-3 rounded-md border transition
-                    ${
-                      isSelected
-                        ? isCorrect
-                          ? "bg-green-100 border-green-500"
-                          : "bg-red-100 border-red-500"
-                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                    }
-                  `}
-                  disabled={!!selected[q.id]}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+const QuestionCard = ({
+  question,
+  options,
+  answer,
+  imageUrl,
+  selected,
+  audioUrl,
+  onOptionClick,
+}: QuestionCardProps) => {
+  return (
+    <div className="p-6 bg-gray-200 shadow-md rounded-xl">
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt="Soal"
+          className="object-contain w-32 h-32 mb-4"
+        />
+      )}
+      <p className="mb-4">{question}</p>
+
+      <div className="gap-2 grid grid-cols-2">
+        {options.map((opt, i) => (
+          <Option
+            key={i}
+            opt={opt}
+            onClick={onOptionClick}
+            selected={opt === selected}
+          />
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default QuestionCard;
