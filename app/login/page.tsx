@@ -40,7 +40,7 @@ export default function LoginPage() {
           setErr("Login failed: User data not found");
         }
       } else {
-        setErr("Login failed");
+        setErr("Login failed: " + (res.message || "Unknown error"));
       }
     } catch (err: any) {
       setErr(err.message);

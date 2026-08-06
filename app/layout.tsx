@@ -2,23 +2,26 @@
 
 import "@/styles/globals.css";
 import { ReactNode } from "react";
-import { Inter } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
+import { UserProgressProvider } from "@/context/UserProgressContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const nunito = Nunito({ subsets: ["latin"], weight: ["400", "600", "700", "800"] });
 
 export const metadata = {
-  title: "TPA Learning App",
-  description: "Latihan TPA interaktif dengan teks & suara Arab",
+  title: "SibaQ - TPA Interaktif",
+  description: "Pembelajaran TPA Interaktif berbasis kuis, visual, dan audio.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body
-        className={`${inter.className} bg-gradient-to-br bg-cover bg-no-repeat h-screen from-indigo-100 to-indigo-300 text-gray-900`}
+        className={`${nunito.className} bg-slate-50 text-slate-900 min-h-screen`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <UserProgressProvider>{children}</UserProgressProvider>
+        </AuthProvider>
       </body>
     </html>
   );

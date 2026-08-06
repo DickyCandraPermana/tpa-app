@@ -1,42 +1,46 @@
 import { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 
 interface props {
   children: ReactNode;
-  title: String;
-  description: String;
+  title: string;
+  description?: string;
 }
 
 const Container = ({ children, title, description }: props) => {
   const router = useRouter();
 
   return (
-    <>
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-gray-100">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-          <div className="flex flex-row h-[50px] items-center justify-center">
-            <div className="w-1/3"></div>
-            <div className=" w-full h-full text-2xl font-bold text-center flex items-center justify-center text-gray-800">
-              <h1>{title}</h1>
-              {description && (
-                <p className="text-sm text-slate-500 text-left">
-                  {description}
-                </p>
-              )}
-            </div>
-            <div className="w-1/3 flex justify-end">
-              <button
-                onClick={() => router.back()}
-                className="p-1 font-bold bg-gray-100 text-red-400 hover:bg-red-400 hover:text-gray-100 size-8 rounded-full animate transition duration-200 ease-in-out"
-              >
-                X
-              </button>
-            </div>
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-slate-50 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none opacity-20">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-indigo-300 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-amber-200 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md p-8 bg-white/90 backdrop-blur-md rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 z-10 border border-white">
+        <div className="flex flex-row items-start justify-between mb-8">
+          <div className="flex-1">
+            <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">{title}</h1>
+            {description && (
+              <p className="text-sm font-medium text-slate-500 mt-2">
+                {description}
+              </p>
+            )}
           </div>
+          <button
+            onClick={() => router.back()}
+            className="flex-shrink-0 flex items-center justify-center w-10 h-10 ml-4 rounded-full bg-slate-100 text-slate-400 hover:bg-red-100 hover:text-red-500 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex flex-col gap-4 w-full">
           {children}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

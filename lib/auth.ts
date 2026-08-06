@@ -29,6 +29,7 @@ export async function registerUser(email: string, password: string) {
 
     return { success: true, user };
   } catch (err: any) {
+    console.error("Error during registration:", err);
     return { success: false, message: err.message };
   }
 }

@@ -45,3 +45,6 @@ next-env.d.ts
 
 seedFirestore.js
 servicceAccountKey.json
+
+/.agents/
+/.codegraph/

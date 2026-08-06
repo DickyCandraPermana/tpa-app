@@ -17,22 +17,22 @@ export default function AuthPage() {
         className="mb-6"
       />
 
-      <p className="mb-3 text-center text-gray-600">
+      <p className="mb-6 text-center font-medium text-slate-600 text-lg">
         Silakan pilih metode autentikasi:
       </p>
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-col gap-4 w-full">
         <button
           onClick={() => router.push("/login")}
-          className="w-1/2 px-4 py-2 text-white transition bg-blue-600 rounded hover:bg-blue-800"
+          className="w-full px-6 py-4 font-bold text-lg text-white transition-all bg-indigo-600 rounded-2xl shadow-lg hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-indigo-200"
         >
-          Login
+          Masuk (Login)
         </button>
 
         <button
           onClick={() => router.push("/register")}
-          className="w-1/2 px-4 py-2 text-white transition bg-green-600 rounded hover:bg-green-700"
+          className="w-full px-6 py-4 font-bold text-lg text-white transition-all bg-teal-500 rounded-2xl shadow-lg hover:-translate-y-1 hover:bg-teal-600 hover:shadow-teal-200"
         >
-          Register
+          Buat Akun Baru
         </button>
       </div>
     </Container>
