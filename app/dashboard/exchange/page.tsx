@@ -1,57 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RewardItem from "@/components/RewardItem";
 import PointBadge from "@/components/PointBadge";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import ToastNotification, { ToastType } from "@/components/ui/ToastNotification";
 import { useAuth } from "@/context/AuthContext";
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
-const REWARDS = [
-  { id: "r1", name: "Buku Tulis", pointsRequired: 5 },
-  { id: "r2", name: "Pensil Warna", pointsRequired: 10 },
-  { id: "r3", name: "Penghapus Lucu", pointsRequired: 3 },
-  { id: "r4", name: "Mainan Bola", pointsRequired: 25 },
-  { id: "r5", name: "Stiker Bintang", pointsRequired: 1 },
-  { id: "r6", name: "Buku Cerita Nabi", pointsRequired: 50 },
-];
+import { getRewards, redeemReward } from "@/lib/services/rewardService";
+import { Reward } from "@/types/schema";
 
 const ExchangePage = () => {
   const { totalPoint, setTotalPoint, uid } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isRedeeming, setIsRedeeming] = useState(false);
 
-  const handleRedeem = async (rewardId: string, cost: number) => {
-    if (!uid) return alert("Silakan login dulu!");
-    if ((totalPoint || 0) < cost) return alert("Poin tidak cukup!");
+  // Dialog & Toast states
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
-    const confirmRedeem = confirm(`Tukar ${cost} poin untuk hadiah ini?`);
-    if (!confirmRedeem) return;
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      try {
+        const data = await getRewards();
+        setRewards(data);
+      } catch (err) {
+        console.error("Error fetching rewards:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCatalog();
+  }, []);
 
-    setLoading(true);
-    try {
-      const newTotal = (totalPoint || 0) - cost;
-      setTotalPoint(newTotal); // Optimistic UI Update
-
-      await addDoc(collection(db, "redeem_requests"), {
-        userId: uid,
-        rewardId,
-        cost,
-        status: "pending",
-        timestamp: new Date(),
+  const handleOpenRedeemModal = (rewardId: string, cost: number) => {
+    if (!uid) {
+      setToast({
+        message: "Silakan login terlebih dahulu untuk menukar hadiah!",
+        type: "error",
       });
-      await updateDoc(doc(db, "users", uid), { totalPoint: newTotal });
-
-      alert("Berhasil ditukar! Tunjukkan ke Ustaz/Ustazah untuk ambil hadiahnya ya.");
-    } catch (error) {
-      console.error("Gagal menukar poin:", error);
-      alert("Gagal menukar poin. Coba lagi.");
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    const found = rewards.find((r) => r.id === rewardId) || {
+      id: rewardId,
+      name: "Hadiah Istimewa",
+      pointsRequired: cost,
+    };
+    setSelectedReward(found);
+  };
+
+  const handleConfirmRedeem = async () => {
+    if (!selectedReward || !uid) return;
+
+    setIsRedeeming(true);
+    const result = await redeemReward(uid, totalPoint || 0, selectedReward);
+
+    if (result.success) {
+      if (typeof result.newPoints === "number") {
+        setTotalPoint(result.newPoints); // Optimistic UI
+      }
+      setSelectedReward(null);
+      setToast({
+        message: "Alhamdulillah! Hadiah berhasil ditukar. Tunjukkan ke Ustaz/Ustazah ya!",
+        type: "success",
+      });
+    } else {
+      setToast({
+        message: result.error || "Gagal menukar hadiah. Silakan coba lagi.",
+        type: "error",
+      });
+    }
+    setIsRedeeming(false);
   };
 
   return (
     <div className="flex flex-col w-full gap-8">
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-800 mb-2">Toko Hadiah 🎁</h1>
@@ -62,22 +87,43 @@ const ExchangePage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {REWARDS.map((reward) => (
-          <RewardItem
-            key={reward.id}
-            id={reward.id}
-            name={reward.name}
-            pointsRequired={reward.pointsRequired}
-            onRedeem={handleRedeem}
-          />
-        ))}
-      </div>
-      
-      {loading && (
-        <div className="fixed inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="text-2xl font-bold text-indigo-600 animate-pulse">Memproses Penukaran...</div>
+      {/* Rewards Catalog */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 font-medium">Memuat katalog hadiah seru...</p>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {rewards.map((reward) => (
+            <RewardItem
+              key={reward.id}
+              id={reward.id}
+              name={reward.name}
+              pointsRequired={reward.pointsRequired}
+              onRedeem={handleOpenRedeemModal}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Interactive Confirm Modal */}
+      <ConfirmModal
+        isOpen={selectedReward !== null}
+        reward={selectedReward}
+        userPoints={totalPoint || 0}
+        isLoading={isRedeeming}
+        onConfirm={handleConfirmRedeem}
+        onCancel={() => setSelectedReward(null)}
+      />
+
+      {/* Modern Auto-dismiss Toast */}
+      {toast && (
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );
