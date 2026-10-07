@@ -2,10 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCourseQuestions, getCourseById, Course, Question } from "@/lib/courses";
+import { getCourseQuestions, getCourseById } from "@/lib/services/courseService";
+import { addPoints, markCourseCompleted } from "@/lib/services/userService";
+import { useAuth } from "@/context/AuthContext";
+import { useQuizSession } from "@/hooks/useQuizSession";
+import { Course, Question } from "@/types/schema";
 import QuestionCard from "@/components/QuestionCard";
 import PointBadge from "@/components/PointBadge";
-import { useUserProgress } from "@/context/UserProgressContext";
 import {
   ChevronLeft,
   ChevronRight,
@@ -24,32 +27,26 @@ export default function TakeCoursePage({
 }) {
   const { course } = React.use(params);
   const router = useRouter();
-  const { addPoints, completeCourse } = useUserProgress();
+  const { uid } = useAuth();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [courseData, setCourseData] = useState<Course | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  // Gamification & Quiz state
-  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
-  const [isCorrectMap, setIsCorrectMap] = useState<{ [key: number]: boolean }>({});
-  const [sessionPoints, setSessionPoints] = useState(0);
-  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [fetchedQuestions, fetchedCourse] = await Promise.all([
-          getCourseQuestions(course as string),
-          getCourseById(course as string),
+          getCourseQuestions(course),
+          getCourseById(course),
         ]);
 
         if (fetchedQuestions?.length > 0) {
           setQuestions(fetchedQuestions);
         }
-        if (fetchedCourse) setCourseData(fetchedCourse);
+        if (fetchedCourse) {
+          setCourseData(fetchedCourse);
+        }
       } catch (error) {
         console.error("Error fetching course quiz data:", error);
       } finally {
@@ -59,6 +56,20 @@ export default function TakeCoursePage({
 
     fetchData();
   }, [course]);
+
+  const quiz = useQuizSession({
+    questions,
+    onAddPoints: async (pts) => {
+      if (uid) {
+        await addPoints(uid, pts);
+      }
+    },
+    onCompleteCourse: async () => {
+      if (uid && course) {
+        await markCourseCompleted(uid, course);
+      }
+    },
+  });
 
   if (loading) {
     return (
@@ -79,7 +90,7 @@ export default function TakeCoursePage({
         <p className="text-slate-500">Materi ini belum memiliki soal latihan. Coba pilih materi lain ya!</p>
         <button
           onClick={() => router.push("/dashboard/courses")}
-          className="mt-4 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md"
+          className="mt-4 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md cursor-pointer"
         >
           Kembali ke Daftar Materi
         </button>
@@ -87,75 +98,8 @@ export default function TakeCoursePage({
     );
   }
 
-  const currentQuestion = questions[currentIndex];
-  const isCurrentAnswered = selectedAnswers[currentIndex] !== undefined;
-  const isCurrentCorrect = !!isCorrectMap[currentIndex];
-
-  const handleAnswerClick = (selected: string) => {
-    // If already correctly answered, prevent duplicate points
-    if (isCorrectMap[currentIndex]) return;
-
-    setSelectedAnswers((prev) => ({
-      ...prev,
-      [currentIndex]: selected,
-    }));
-
-    const isCorrect = selected === currentQuestion.correctAnswer;
-    if (isCorrect) {
-      setIsCorrectMap((prev) => ({
-        ...prev,
-        [currentIndex]: true,
-      }));
-      const points = currentQuestion.points || 1;
-      setSessionPoints((prev) => prev + points);
-      addPoints(points);
-    } else {
-      setIsCorrectMap((prev) => ({
-        ...prev,
-        [currentIndex]: false,
-      }));
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
-  };
-
-  const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  const handleFinishQuiz = async () => {
-    setIsSubmitting(true);
-    try {
-      if (course) {
-        await completeCourse(course as string);
-      }
-      setIsQuizCompleted(true);
-    } catch (error) {
-      console.error("Failed to complete course:", error);
-      setIsQuizCompleted(true);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleRestartQuiz = () => {
-    setCurrentIndex(0);
-    setSelectedAnswers({});
-    setIsCorrectMap({});
-    setSessionPoints(0);
-    setIsQuizCompleted(false);
-  };
-
-  const totalQuestions = questions.length;
-  const correctCount = Object.values(isCorrectMap).filter(Boolean).length;
-  const scorePercent = Math.round((correctCount / totalQuestions) * 100);
-
   // Result Summary View
-  if (isQuizCompleted) {
+  if (quiz.isQuizCompleted) {
     return (
       <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-10 px-4 animate-fade-in">
         <div className="w-full bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
@@ -183,22 +127,22 @@ export default function TakeCoursePage({
           <div className="grid grid-cols-3 gap-4 w-full mb-8">
             <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex flex-col items-center">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Nilai</span>
-              <span className="text-2xl md:text-3xl font-extrabold text-indigo-600">{scorePercent}%</span>
+              <span className="text-2xl md:text-3xl font-extrabold text-indigo-600">{quiz.results.scorePercent}%</span>
             </div>
             <div className="p-4 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex flex-col items-center">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Benar</span>
-              <span className="text-2xl md:text-3xl font-extrabold text-emerald-700">{correctCount} / {totalQuestions}</span>
+              <span className="text-2xl md:text-3xl font-extrabold text-emerald-700">{quiz.results.correctCount} / {quiz.totalQuestions}</span>
             </div>
             <div className="p-4 bg-amber-50 border border-amber-200/80 rounded-2xl flex flex-col items-center">
               <span className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Poin Baru</span>
-              <span className="text-2xl md:text-3xl font-extrabold text-amber-700">+{sessionPoints} ⭐</span>
+              <span className="text-2xl md:text-3xl font-extrabold text-amber-700">+{quiz.sessionPoints} ⭐</span>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button
-              onClick={handleRestartQuiz}
+              onClick={quiz.handleRestartQuiz}
               className="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all cursor-pointer"
             >
               <RotateCcw className="w-5 h-5" /> Ulangi Soal
@@ -221,11 +165,11 @@ export default function TakeCoursePage({
     );
   }
 
-  const isLastQuestion = currentIndex === totalQuestions - 1;
+  if (!quiz.currentQuestion) return null;
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6 py-6 px-4">
-      {/* Top Header: Navigation & Realtime Points */}
+      {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
         <button
           onClick={() => router.push(`/dashboard/courses/${course}`)}
@@ -242,12 +186,12 @@ export default function TakeCoursePage({
         <PointBadge />
       </div>
 
-      {/* Question Progress Bubbles */}
+      {/* Progress Bubbles */}
       <div className="flex items-center justify-center gap-2 flex-wrap bg-white p-4 rounded-2xl border border-slate-100">
         {questions.map((_, idx) => {
-          const isAnswered = selectedAnswers[idx] !== undefined;
-          const isCorrect = isCorrectMap[idx];
-          const isCurrent = idx === currentIndex;
+          const isAnswered = quiz.selectedAnswers[idx] !== undefined;
+          const isCorrect = quiz.isCorrectMap[idx];
+          const isCurrent = idx === quiz.currentIndex;
 
           let bubbleStyle = "bg-slate-100 text-slate-500 border-slate-200";
           if (isCurrent) {
@@ -262,7 +206,7 @@ export default function TakeCoursePage({
             <button
               key={idx}
               type="button"
-              onClick={() => setCurrentIndex(idx)}
+              onClick={() => quiz.setCurrentIndex(idx)}
               className={`w-9 h-9 rounded-xl font-bold text-sm border flex items-center justify-center transition-all cursor-pointer ${bubbleStyle}`}
             >
               {idx + 1}
@@ -271,16 +215,16 @@ export default function TakeCoursePage({
         })}
       </div>
 
-      {/* Main Question Card Component */}
+      {/* Question Card */}
       <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100">
         <QuestionCard
-          question={currentQuestion}
-          currentIndex={currentIndex}
-          totalQuestions={totalQuestions}
-          onOptionClick={handleAnswerClick}
-          selected={selectedAnswers[currentIndex] || null}
-          isAnswered={isCurrentAnswered}
-          isCorrect={isCurrentCorrect}
+          question={quiz.currentQuestion}
+          currentIndex={quiz.currentIndex}
+          totalQuestions={quiz.totalQuestions}
+          onOptionClick={quiz.handleAnswerClick}
+          selected={quiz.selectedAnswers[quiz.currentIndex] || null}
+          isAnswered={quiz.isCurrentAnswered}
+          isCorrect={quiz.isCurrentCorrect}
         />
       </div>
 
@@ -288,21 +232,21 @@ export default function TakeCoursePage({
       <div className="flex items-center justify-between gap-4 mt-2">
         <button
           type="button"
-          onClick={handlePrev}
-          disabled={currentIndex === 0}
+          onClick={quiz.handlePrev}
+          disabled={quiz.currentIndex === 0}
           className="flex items-center gap-2 px-6 py-3 font-bold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" /> Sebelumnya
         </button>
 
-        {isLastQuestion ? (
+        {quiz.isLastQuestion ? (
           <button
             type="button"
-            onClick={handleFinishQuiz}
-            disabled={isSubmitting}
+            onClick={quiz.handleFinishQuiz}
+            disabled={quiz.isSubmitting}
             className="flex items-center gap-2 px-8 py-3.5 font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 rounded-2xl transition-all cursor-pointer disabled:opacity-50"
           >
-            {isSubmitting ? (
+            {quiz.isSubmitting ? (
               <span>Menyimpan...</span>
             ) : (
               <>
@@ -314,7 +258,7 @@ export default function TakeCoursePage({
         ) : (
           <button
             type="button"
-            onClick={handleNext}
+            onClick={quiz.handleNext}
             className="flex items-center gap-2 px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 rounded-2xl transition-all cursor-pointer"
           >
             <span>Selanjutnya</span>
