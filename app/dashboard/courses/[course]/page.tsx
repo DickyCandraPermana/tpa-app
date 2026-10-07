@@ -8,7 +8,7 @@ import { ChevronLeft, BookOpen, Layers, Award, PlayCircle } from "lucide-react";
 
 const CourseDetail = ({ params }: { params: Promise<{ course: string }> }) => {
   const { course } = React.use(params);
-  const [courseData, setCourseData] = useState<Course>({ id: course });
+  const [courseData, setCourseData] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const { uid } = useAuth();
   const router = useRouter();
@@ -37,7 +37,7 @@ const CourseDetail = ({ params }: { params: Promise<{ course: string }> }) => {
     fetchCourse();
   }, [course]);
 
-  if (loading) {
+  if (loading || !courseData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
