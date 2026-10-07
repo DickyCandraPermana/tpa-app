@@ -42,7 +42,10 @@ const ProfileOverview = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         {/* Quick action: Mulai Belajar */}
-        <Link href="/course" className="flex flex-col items-center justify-center p-8 bg-white border border-slate-100 shadow-sm rounded-3xl hover:shadow-xl hover:-translate-y-1 transition-all group">
+        <Link
+          href="/dashboard/courses"
+          className="flex flex-col items-center justify-center p-8 bg-white border border-slate-100 shadow-sm rounded-3xl hover:shadow-xl hover:-translate-y-1 transition-all group"
+        >
           <div className="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <BookOpen className="w-8 h-8" />
           </div>
@@ -51,7 +54,10 @@ const ProfileOverview = () => {
         </Link>
         
         {/* Quick action: Tukar Poin */}
-        <Link href="/rewards" className="flex flex-col items-center justify-center p-8 bg-white border border-slate-100 shadow-sm rounded-3xl hover:shadow-xl hover:-translate-y-1 transition-all group">
+        <Link
+          href="/dashboard/exchange"
+          className="flex flex-col items-center justify-center p-8 bg-white border border-slate-100 shadow-sm rounded-3xl hover:shadow-xl hover:-translate-y-1 transition-all group"
+        >
           <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <span className="text-3xl">🎁</span>
           </div>

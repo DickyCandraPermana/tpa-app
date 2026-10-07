@@ -4,8 +4,8 @@ import { useState } from "react";
 import RewardItem from "@/components/RewardItem";
 import PointBadge from "@/components/PointBadge";
 import { useAuth } from "@/context/AuthContext";
-// import { addDoc, collection } from "firebase/firestore";
-// import { db } from "@/lib/firebase";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const REWARDS = [
   { id: "r1", name: "Buku Tulis", pointsRequired: 5 },
@@ -32,19 +32,18 @@ const ExchangePage = () => {
       const newTotal = (totalPoint || 0) - cost;
       setTotalPoint(newTotal); // Optimistic UI Update
 
-      // TODO: Sinkronisasi Firestore
-      // await addDoc(collection(db, "redeem_requests"), {
-      //   userId: uid,
-      //   rewardId,
-      //   cost,
-      //   status: "pending",
-      //   timestamp: new Date()
-      // });
-      // await updateDoc(doc(db, "users", uid), { totalPoint: newTotal });
+      await addDoc(collection(db, "redeem_requests"), {
+        userId: uid,
+        rewardId,
+        cost,
+        status: "pending",
+        timestamp: new Date(),
+      });
+      await updateDoc(doc(db, "users", uid), { totalPoint: newTotal });
 
       alert("Berhasil ditukar! Tunjukkan ke Ustaz/Ustazah untuk ambil hadiahnya ya.");
     } catch (error) {
-      console.error(error);
+      console.error("Gagal menukar poin:", error);
       alert("Gagal menukar poin. Coba lagi.");
     } finally {
       setLoading(false);
