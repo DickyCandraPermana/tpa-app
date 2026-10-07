@@ -6,11 +6,17 @@ import {
   useEffect,
   useState,
   ReactNode,
+  useCallback,
 } from "react";
+import { onAuthStateChanged, signOut, User as FirebaseUser } from "firebase/auth";
+import { doc, onSnapshot, Unsubscribe } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { UserProfile, UserProfileSchema } from "@/types/schema";
 
 type AuthContextType = {
   uid: string | null;
-  setUid: (uid: string | null) => void;
+  user: FirebaseUser | null;
+  userProfile: UserProfile | null;
   username: string | null;
   setUsername: (username: string | null) => void;
   role: string | null;
@@ -23,117 +29,119 @@ type AuthContextType = {
   setCompletedCourse: (completedCourse: string[] | null) => void;
   totalPoint: number | null;
   setTotalPoint: (totalPoint: number | null) => void;
-  clearAuth: () => void;
+  setUid: (uid: string | null) => void;
+  clearAuth: () => Promise<void>;
+  signOutUser: () => Promise<void>;
   loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [uid, setUid] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [avatarURL, setAvatarURL] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-  const [completedCourse, setCompletedCourse] = useState<string[] | null>(null);
-  const [totalPoint, setTotalPoint] = useState<number | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ⬇️ Restore from localStorage on load
+  // Local overrides for optimistic UI
+  const [overridePoints, setOverridePoints] = useState<number | null>(null);
+  const [overrideCourses, setOverrideCourses] = useState<string[] | null>(null);
+
   useEffect(() => {
-    setUid(localStorage.getItem("uid"));
-    setUsername(localStorage.getItem("username"));
-    setRole(localStorage.getItem("role"));
-    setAvatarURL(localStorage.getItem("avatarURL"));
-    setEmail(localStorage.getItem("email"));
+    let unsubscribeSnapshot: Unsubscribe | null = null;
 
-    const storedCourse = localStorage.getItem("completedCourse");
-    if (storedCourse) setCompletedCourse(JSON.parse(storedCourse));
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
 
-    const storedPoint = localStorage.getItem("totalPoint");
-    if (storedPoint) setTotalPoint(parseInt(storedPoint));
-    setLoading(false);
+      if (firebaseUser) {
+        // Listen to Firestore document updates in real-time
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+        unsubscribeSnapshot = onSnapshot(
+          userDocRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              try {
+                const parsed = UserProfileSchema.parse({
+                  uid: docSnap.id,
+                  ...docSnap.data(),
+                });
+                setUserProfile(parsed);
+              } catch (err) {
+                console.error("Error parsing user profile from Firestore:", err);
+              }
+            } else {
+              setUserProfile({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                username: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Santri",
+                role: "santri",
+                avatarURL: firebaseUser.photoURL || null,
+                totalPoint: 0,
+                completedCourse: [],
+              });
+            }
+            setLoading(false);
+          },
+          (error) => {
+            console.error("Firestore user onSnapshot error:", error);
+            setLoading(false);
+          }
+        );
+      } else {
+        if (unsubscribeSnapshot) {
+          unsubscribeSnapshot();
+          unsubscribeSnapshot = null;
+        }
+        setUserProfile(null);
+        setOverridePoints(null);
+        setOverrideCourses(null);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
-  // ⬇️ Sync ke localStorage tiap kali berubah
-  useEffect(() => {
-    uid !== null
-      ? localStorage.setItem("uid", uid)
-      : localStorage.removeItem("uid");
-  }, [uid]);
+  const clearAuth = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error("Error during sign out:", e);
+    }
+    setUser(null);
+    setUserProfile(null);
+    setOverridePoints(null);
+    setOverrideCourses(null);
+  }, []);
 
-  useEffect(() => {
-    username !== null
-      ? localStorage.setItem("username", username)
-      : localStorage.removeItem("username");
-  }, [username]);
-
-  useEffect(() => {
-    role !== null
-      ? localStorage.setItem("role", role)
-      : localStorage.removeItem("role");
-  }, [role]);
-
-  useEffect(() => {
-    avatarURL !== null
-      ? localStorage.setItem("avatarURL", avatarURL)
-      : localStorage.removeItem("avatarURL");
-  }, [avatarURL]);
-
-  useEffect(() => {
-    email !== null
-      ? localStorage.setItem("email", email)
-      : localStorage.removeItem("email");
-  }, [email]);
-
-  useEffect(() => {
-    completedCourse !== null
-      ? localStorage.setItem("completedCourse", JSON.stringify(completedCourse))
-      : localStorage.removeItem("completedCourse");
-  }, [completedCourse]);
-
-  useEffect(() => {
-    totalPoint !== null
-      ? localStorage.setItem("totalPoint", totalPoint.toString())
-      : localStorage.removeItem("totalPoint");
-  }, [totalPoint]);
-
-  const clearAuth = () => {
-    setUid(null);
-    setUsername(null);
-    setRole(null);
-    setAvatarURL(null);
-    setEmail(null);
-    setCompletedCourse(null);
-    setTotalPoint(null);
-
-    localStorage.removeItem("uid");
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
-    localStorage.removeItem("avatarURL");
-    localStorage.removeItem("email");
-    localStorage.removeItem("completedCourse");
-    localStorage.removeItem("totalPoint");
-  };
+  const totalPoint = overridePoints !== null ? overridePoints : userProfile?.totalPoint ?? 0;
+  const completedCourse = overrideCourses !== null ? overrideCourses : userProfile?.completedCourse ?? [];
 
   return (
     <AuthContext.Provider
       value={{
-        uid,
-        setUid,
-        username,
-        setUsername,
-        role,
-        setRole,
-        avatarURL,
-        setAvatarURL,
-        email,
-        setEmail,
+        uid: user?.uid ?? userProfile?.uid ?? null,
+        user,
+        userProfile,
+        username: userProfile?.username ?? user?.displayName ?? (user?.email ? user.email.split("@")[0] : null),
+        setUsername: () => {},
+        role: userProfile?.role ?? "santri",
+        setRole: () => {},
+        avatarURL: userProfile?.avatarURL ?? user?.photoURL ?? null,
+        setAvatarURL: () => {},
+        email: user?.email ?? userProfile?.email ?? null,
+        setEmail: () => {},
         completedCourse,
-        setCompletedCourse,
+        setCompletedCourse: (courses) => setOverrideCourses(courses),
         totalPoint,
-        setTotalPoint,
+        setTotalPoint: (pts) => setOverridePoints(pts),
+        setUid: () => {},
         clearAuth,
+        signOutUser: clearAuth,
         loading,
       }}
     >
