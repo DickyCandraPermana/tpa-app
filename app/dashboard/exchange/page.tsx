@@ -71,7 +71,7 @@ export default function ExchangePage() {
     setIsRedeeming(false);
   };
 
-  const isUstadz = role === "ustadz";
+  const isUstadz = role === "ustadz" || role === "ustaz" || role === "admin";
 
   return (
     <div className="flex flex-col w-full gap-6 select-none pb-12">

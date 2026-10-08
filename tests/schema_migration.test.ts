@@ -33,12 +33,14 @@ describe("Schema Migration & Normalization", () => {
     expect(parsed.username).toBe("Santri Hebat");
   });
 
-  it("preserves valid 'ustaz' and 'admin' roles", () => {
+  it("preserves valid 'ustaz' and 'admin' roles and normalizes 'ustadz'", () => {
     const ustaz = UserProfileSchema.parse({ uid: "u1", role: "ustaz" });
     const admin = UserProfileSchema.parse({ uid: "a1", role: "admin" });
+    const ustadz = UserProfileSchema.parse({ uid: "u2", role: "ustadz" });
 
     expect(ustaz.role).toBe("ustaz");
     expect(admin.role).toBe("admin");
+    expect(ustadz.role).toBe("ustaz");
   });
 
   it("validates CoinTransactionSchema", () => {

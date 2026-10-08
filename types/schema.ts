@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const UserRoleSchema = z.preprocess((val) => {
   if (val === "user" || !val) return "santri";
+  if (val === "ustadz") return "ustaz";
   return val;
 }, z.enum(["santri", "ustaz", "admin"]).default("santri"));
 export type UserRole = z.infer<typeof UserRoleSchema>;

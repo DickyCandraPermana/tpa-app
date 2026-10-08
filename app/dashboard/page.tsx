@@ -91,7 +91,7 @@ export default function DashboardPage() {
     fetchCoursesList();
   }, []);
 
-  const isUstadz = role === "ustadz";
+  const isUstadz = role === "ustadz" || role === "ustaz" || role === "admin";
 
   // Mock santri list for Ustadz monitoring view
   const santriList = [
