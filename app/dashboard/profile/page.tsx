@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -8,12 +8,15 @@ import TactileCard from "@/components/ui/TactileCard";
 import TactileButton from "@/components/ui/TactileButton";
 import GoldBadge from "@/components/ui/GoldBadge";
 import ArabicText from "@/components/ui/ArabicText";
-import { BookOpen, Gift, LogOut, Award, User, Sparkles } from "lucide-react";
+import AvatarUploadModal from "@/components/features/AvatarUploadModal";
+import { BookOpen, Gift, LogOut, Award, User, Sparkles, Camera } from "lucide-react";
 import Link from "next/link";
 import { logoutUser } from "@/lib/auth";
 
 export default function ProfilePage() {
-  const { username, email, avatarURL, totalPoint, completedCourse, role, setUid } = useAuth();
+  const { uid, username, email, avatarURL, totalPoint, completedCourse, role, setUid } = useAuth();
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [optimisticAvatar, setOptimisticAvatar] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -27,6 +30,7 @@ export default function ProfilePage() {
   };
 
   const isUstadz = role === "ustadz" || role === "ustaz" || role === "admin";
+  const currentAvatar = optimisticAvatar || avatarURL || "/assets/profile_picture_placeholder.png";
 
   return (
     <div className="flex flex-col w-full gap-6 select-none pb-12">
@@ -43,13 +47,33 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex items-center gap-4 z-10">
-          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full p-1 bg-white/20 backdrop-blur-xs relative shrink-0">
+          <div
+            onClick={() => setIsUploadModalOpen(true)}
+            className="w-18 h-18 sm:w-20 sm:h-20 rounded-full p-1 bg-white/20 backdrop-blur-xs relative shrink-0 cursor-pointer group transition-transform hover:scale-105 active:scale-95"
+            title="Klik untuk ganti foto profil"
+            role="button"
+            aria-label="Ubah foto profil"
+            data-testid="avatar-edit-button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsUploadModalOpen(true);
+              }
+            }}
+          >
             <Image
-              src={avatarURL || "/assets/profile_picture_placeholder.png"}
+              src={currentAvatar}
               alt="Avatar"
               fill
-              className="rounded-full object-cover border-2 border-white"
+              className="rounded-full object-cover border-2 border-white group-hover:brightness-95 transition-all"
             />
+            <div
+              className="absolute bottom-0 right-0 p-1.5 bg-emerald-600 text-white rounded-full shadow-md border-2 border-white group-hover:bg-emerald-500 transition-colors"
+              title="Ganti Foto"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </div>
           </div>
 
           <div className="flex flex-col justify-center min-w-0">
@@ -130,6 +154,17 @@ export default function ProfilePage() {
           <span>Keluar Akun (Logout)</span>
         </TactileButton>
       </div>
+
+      {/* Cloudinary Avatar Upload Modal */}
+      <AvatarUploadModal
+        isOpen={isUploadModalOpen}
+        currentAvatarUrl={currentAvatar}
+        userId={uid || ""}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={(newUrl) => {
+          setOptimisticAvatar(newUrl);
+        }}
+      />
     </div>
   );
 }
