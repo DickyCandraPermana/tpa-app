@@ -1,6 +1,7 @@
 import { collection, addDoc, doc, updateDoc, increment, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Reward, RewardSchema, RedeemRequest } from "@/types/schema";
+import { recordCoinTransaction } from "@/lib/services/coinService";
 
 export const DEFAULT_REWARDS: Reward[] = [
   { id: "r1", name: "Buku Tulis", pointsRequired: 5 },
@@ -66,6 +67,15 @@ export const redeemReward = async (
     await updateDoc(doc(db, "users", userId), {
       totalPoint: increment(-reward.pointsRequired),
     });
+
+    await recordCoinTransaction(
+      userId,
+      -reward.pointsRequired,
+      "SPENT",
+      "REWARD_REDEEM",
+      reward.id,
+      `Penukaran hadiah: ${reward.name}`
+    );
 
     return {
       success: true,
