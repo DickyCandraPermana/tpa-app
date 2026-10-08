@@ -3,6 +3,7 @@ import {
   addDoc,
   doc,
   updateDoc,
+  deleteDoc,
   getDoc,
   increment,
   getDocs,
@@ -311,4 +312,50 @@ export const rejectRedeemRequest = async (
     console.error("Error rejecting redeem request:", error);
     return { success: false, error: error?.message || "Gagal menolak klaim hadiah." };
   }
+};
+
+/**
+ * Menambahkan item hadiah baru ke katalog (khusus Ustadz / Admin)
+ */
+export const createReward = async (
+  rewardData: Omit<Reward, "id">
+): Promise<Reward> => {
+  // Validasi Zod schema
+  const parsed = RewardSchema.omit({ id: true }).parse(rewardData);
+
+  const docRef = await addDoc(collection(db, "rewards"), {
+    ...parsed,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return {
+    id: docRef.id,
+    ...parsed,
+  };
+};
+
+/**
+ * Menghapus hadiah dari katalog (khusus Ustadz / Admin)
+ */
+export const deleteReward = async (rewardId: string): Promise<void> => {
+  const rewardRef = doc(db, "rewards", rewardId);
+  await deleteDoc(rewardRef);
+};
+
+/**
+ * Memperbarui jumlah stok hadiah (khusus Ustadz / Admin)
+ */
+export const updateRewardStock = async (
+  rewardId: string,
+  newStock: number
+): Promise<void> => {
+  if (newStock < 0) {
+    throw new Error("Stok tidak boleh bernilai negatif.");
+  }
+  const rewardRef = doc(db, "rewards", rewardId);
+  await updateDoc(rewardRef, {
+    stock: newStock,
+    updatedAt: serverTimestamp(),
+  });
 };

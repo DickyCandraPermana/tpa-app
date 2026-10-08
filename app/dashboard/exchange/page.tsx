@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import RewardCard from "@/components/features/RewardCard";
 import ClaimApprovalCard from "@/components/features/ClaimApprovalCard";
+import AddRewardModal from "@/components/features/AddRewardModal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import ToastNotification, { ToastType } from "@/components/ui/ToastNotification";
 import TactileCard from "@/components/ui/TactileCard";
+import TactileButton from "@/components/ui/TactileButton";
 import ArabicText from "@/components/ui/ArabicText";
 import GoldBadge from "@/components/ui/GoldBadge";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +18,7 @@ import {
   getUserRedeemRequests,
   approveRedeemRequest,
   rejectRedeemRequest,
+  deleteReward,
 } from "@/lib/services/rewardService";
 import { Reward, RedeemRequest } from "@/types/schema";
 import {
@@ -26,6 +29,7 @@ import {
   Inbox,
   Sparkles,
   ClipboardList,
+  Plus,
 } from "lucide-react";
 
 export default function ExchangePage() {
@@ -46,6 +50,7 @@ export default function ExchangePage() {
 
   // Dialog & Toast states
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [isAddRewardOpen, setIsAddRewardOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   // Sync default tab if role changes
@@ -383,30 +388,70 @@ export default function ExchangePage() {
         </div>
       ) : (
         /* Rewards Catalog View */
-        rewards.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border-2 border-[#F3E8D6] p-8 shadow-xs">
-            <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-3">
-              <Gift className="w-8 h-8" />
+        <div>
+          {/* Ustadz Action Bar for Catalog */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-amber-600" />
+              <span className="text-sm font-extrabold text-slate-800">
+                Daftar Hadiah ({rewards.length})
+              </span>
             </div>
-            <h3 className="text-lg font-black text-slate-800">Katalog Belum Tersedia</h3>
-            <p className="text-slate-500 text-xs font-medium mt-1">
-              Hadiah berkah sedang disiapkan oleh Ustadz dan pengurus TPA.
-            </p>
+
+            {isUstadz && (
+              <TactileButton
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setIsAddRewardOpen(true)}
+                className="gap-1.5"
+                data-testid="add-reward-button"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Hadiah</span>
+              </TactileButton>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {rewards.map((reward) => (
-              <RewardCard
-                key={reward.id}
-                reward={reward}
-                userPoints={totalPoint || 0}
-                onRedeem={handleOpenRedeemModal}
-                isRedeeming={isRedeeming}
-              />
-            ))}
-          </div>
-        )
+
+          {rewards.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border-2 border-[#F3E8D6] p-8 shadow-xs">
+              <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-3">
+                <Gift className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-black text-slate-800">Katalog Belum Tersedia</h3>
+              <p className="text-slate-500 text-xs font-medium mt-1">
+                Hadiah berkah sedang disiapkan oleh Ustadz dan pengurus TPA.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {rewards.map((reward) => (
+                <RewardCard
+                  key={reward.id}
+                  reward={reward}
+                  userPoints={totalPoint || 0}
+                  onRedeem={handleOpenRedeemModal}
+                  isRedeeming={isRedeeming}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
+
+      {/* Add Reward Modal for Ustadz */}
+      <AddRewardModal
+        isOpen={isAddRewardOpen}
+        onClose={() => setIsAddRewardOpen(false)}
+        onSuccess={(newReward) => {
+          setRewards((prev) => [newReward, ...prev]);
+          setIsAddRewardOpen(false);
+          setToast({
+            message: `Hadiah "${newReward.name}" berhasil ditambahkan ke katalog!`,
+            type: "success",
+          });
+        }}
+      />
 
       {/* Interactive Confirm Modal for Santri */}
       <ConfirmModal
