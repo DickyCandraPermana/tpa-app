@@ -5,6 +5,8 @@ import {
   QuestionSchema,
   RewardSchema,
   RedeemRequestSchema,
+  CoinTransactionSchema,
+  SetoranLogSchema,
 } from "../types/schema";
 
 describe("SibaQ Zod Schemas Validation", () => {
@@ -72,7 +74,7 @@ describe("SibaQ Zod Schemas Validation", () => {
     expect(() => RewardSchema.parse(invalidReward)).toThrow();
   });
 
-  it("validates redeem request schema", () => {
+  it("validates redeem request schema and normalizes status, cost, pointsRequired", () => {
     const validRequest = {
       userId: "u-1",
       rewardId: "r-1",
@@ -82,7 +84,50 @@ describe("SibaQ Zod Schemas Validation", () => {
     };
 
     const parsed = RedeemRequestSchema.parse(validRequest);
-    expect(parsed.status).toBe("pending");
+    expect(parsed.status).toBe("PENDING");
     expect(parsed.cost).toBe(15);
+    expect(parsed.pointsRequired).toBe(15);
+    expect(parsed.userName).toBe("Santri");
+    expect(parsed.rewardName).toBe("Hadiah Santri");
+  });
+
+  it("normalizes uppercase and lowercase status for RedeemRequestSchema", () => {
+    const p1 = RedeemRequestSchema.parse({ userId: "u-1", rewardId: "r-1", pointsRequired: 20, status: "APPROVED" });
+    const p2 = RedeemRequestSchema.parse({ userId: "u-1", rewardId: "r-1", cost: 10, status: "rejected" });
+
+    expect(p1.status).toBe("APPROVED");
+    expect(p1.pointsRequired).toBe(20);
+    expect(p2.status).toBe("REJECTED");
+    expect(p2.pointsRequired).toBe(10);
+  });
+
+  it("validates CoinTransactionSchema with 'REWARD_REFUND' source", () => {
+    const refundTx = {
+      id: "tx-ref-1",
+      userId: "santri-123",
+      amount: 25,
+      type: "EARNED" as const,
+      source: "REWARD_REFUND" as const,
+      referenceId: "req-99",
+      description: "Pengembalian koin: Hadiah ditolak",
+    };
+    const parsed = CoinTransactionSchema.parse(refundTx);
+    expect(parsed.source).toBe("REWARD_REFUND");
+    expect(parsed.type).toBe("EARNED");
+    expect(parsed.amount).toBe(25);
+  });
+
+  it("validates SetoranLogSchema with default kelancaran and bonusCoin", () => {
+    const logData = {
+      santriId: "s-1",
+      santriName: "Faris",
+      jilid: "Jilid 2",
+      page: 15,
+      ustadzId: "u-1",
+    };
+    const parsed = SetoranLogSchema.parse(logData);
+    expect(parsed.kelancaran).toBe("LANCAR");
+    expect(parsed.bonusCoin).toBe(1);
+    expect(parsed.page).toBe(15);
   });
 });

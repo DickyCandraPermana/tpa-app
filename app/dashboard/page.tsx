@@ -5,15 +5,20 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import LearningMapNode from "@/components/features/LearningMapNode";
 import SantriProgressCard from "@/components/features/SantriProgressCard";
+import SetoranModal from "@/components/features/SetoranModal";
 import TactileButton from "@/components/ui/TactileButton";
 import TactileCard from "@/components/ui/TactileCard";
 import ArabicText from "@/components/ui/ArabicText";
 import GoldBadge from "@/components/ui/GoldBadge";
 import { getCourses, Course } from "@/lib/courses";
 import {
+  getHalaqahSantriList,
+  SantriProgressItem,
+} from "@/lib/services/halaqahService";
+import { getPendingRedeemRequests } from "@/lib/services/rewardService";
+import {
   Sparkles,
   BookOpen,
-  HelpCircle,
   Gift,
   CheckCircle2,
   Users,
@@ -77,29 +82,65 @@ export default function DashboardPage() {
   const { uid, username, role, totalPoint, completedCourse } = useAuth();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [santriList, setSantriList] = useState<SantriProgressItem[]>([]);
+  const [pendingClaimsCount, setPendingClaimsCount] = useState<number>(0);
+  const [selectedSantriForSetoran, setSelectedSantriForSetoran] =
+    useState<SantriProgressItem | null>(null);
+  const [isSetoranModalOpen, setIsSetoranModalOpen] = useState(false);
   const [ustadzNotice, setUstadzNotice] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchCoursesList = async () => {
-      try {
-        const fetched = await getCourses();
-        setCourses(fetched);
-      } catch (e) {
-        console.error("Error fetching courses:", e);
-      }
-    };
-    fetchCoursesList();
-  }, []);
 
   const isUstadz = role === "ustadz" || role === "ustaz" || role === "admin";
 
-  // Mock santri list for Ustadz monitoring view
-  const santriList = [
-    { id: "s1", name: "Muhammad Faris", jilid: "Jilid 2", page: 18, totalPages: 30, completed: 18 },
-    { id: "s2", name: "Aisyah Humaira", jilid: "Jilid 3", page: 24, totalPages: 30, completed: 24 },
-    { id: "s3", name: "Salman Al-Farisi", jilid: "Jilid 1", page: 12, totalPages: 30, completed: 12 },
-    { id: "s4", name: "Khadijah Azzahra", jilid: "Jilid 4", page: 5, totalPages: 30, completed: 5 },
-  ];
+  useEffect(() => {
+    if (isUstadz) {
+      // Ambil daftar santri binaan halaqah real-time
+      getHalaqahSantriList()
+        .then((list) => {
+          if (list && list.length > 0) {
+            setSantriList(list);
+          }
+        })
+        .catch((err) => {
+          console.error("Gagal memuat daftar santri halaqah:", err);
+        });
+
+      // Ambil jumlah klaim hadiah santri yang pending
+      getPendingRedeemRequests()
+        .then((reqs) => {
+          setPendingClaimsCount(reqs.length);
+        })
+        .catch((err) => {
+          console.error("Gagal memuat klaim pending:", err);
+        });
+    } else {
+      const fetchCoursesList = async () => {
+        try {
+          const fetched = await getCourses();
+          setCourses(fetched);
+        } catch (e) {
+          console.error("Error fetching courses:", e);
+        }
+      };
+      fetchCoursesList();
+    }
+  }, [isUstadz]);
+
+  const handleOpenSetoran = (santri: SantriProgressItem) => {
+    setSelectedSantriForSetoran(santri);
+    setIsSetoranModalOpen(true);
+  };
+
+  const handleSetoranSuccess = (
+    updatedSantri: SantriProgressItem,
+    bonusCoin: number
+  ) => {
+    setSantriList((prev) =>
+      prev.map((s) => (s.id === updatedSantri.id ? updatedSantri : s))
+    );
+    setUstadzNotice(
+      `Alhamdulillah! Setoran ${updatedSantri.name} (${updatedSantri.jilid} hal ${updatedSantri.page}) berhasil dicatat (+${bonusCoin} Koin Berkah).`
+    );
+  };
 
   if (isUstadz) {
     return (
@@ -129,13 +170,21 @@ export default function DashboardPage() {
         {/* Quick Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
           <TactileCard className="p-4 flex flex-col gap-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase">Total Santri Aktif</span>
-            <span className="text-2xl font-black text-emerald-800">4 Santri</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase">
+              Total Santri Aktif
+            </span>
+            <span className="text-2xl font-black text-emerald-800">
+              {santriList.length} Santri
+            </span>
           </TactileCard>
 
           <TactileCard className="p-4 flex flex-col gap-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase">Klaim Menunggu</span>
-            <span className="text-2xl font-black text-amber-600">2 Hadiah</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase">
+              Klaim Menunggu
+            </span>
+            <span className="text-2xl font-black text-amber-600">
+              {pendingClaimsCount} Hadiah
+            </span>
           </TactileCard>
         </div>
 
@@ -176,13 +225,23 @@ export default function DashboardPage() {
                 page={santri.page}
                 totalPages={santri.totalPages}
                 completedCount={santri.completed}
-                onUpdateProgress={() =>
-                  setUstadzNotice(`Progres santri ${santri.name} berhasil diperbarui!`)
-                }
+                onUpdateProgress={() => handleOpenSetoran(santri)}
               />
             ))}
           </div>
         </div>
+
+        {/* Modal Catat Setoran Mengaji */}
+        <SetoranModal
+          isOpen={isSetoranModalOpen}
+          santri={selectedSantriForSetoran}
+          ustadzId={uid || "ustadz-default"}
+          onClose={() => {
+            setIsSetoranModalOpen(false);
+            setSelectedSantriForSetoran(null);
+          }}
+          onSuccess={handleSetoranSuccess}
+        />
       </div>
     );
   }
@@ -193,20 +252,30 @@ export default function DashboardPage() {
       {/* Hero Greetings Card */}
       <TactileCard className="p-5 bg-gradient-to-br from-emerald-50 via-white to-amber-50/40 relative overflow-hidden">
         <div className="flex items-center justify-between mb-3">
-          <ArabicText text="أَهْلًا بِكَ" size="sm" className="text-emerald-900" />
-          <GoldBadge type="star" value={`${completedCourse?.length || 0} Selesai`} />
+          <ArabicText
+            text="أَهْلًا بِكَ"
+            size="sm"
+            className="text-emerald-900"
+          />
+          <GoldBadge
+            type="star"
+            value={`${completedCourse?.length || 0} Selesai`}
+          />
         </div>
 
         <h1 className="text-xl font-black text-slate-900 mb-1">
           Assalamu’alaikum, {username || "Sobat Santri"}! 🌿
         </h1>
         <p className="text-xs text-slate-600 font-medium leading-relaxed">
-          Ayo lanjutkan petualangan mengaji hari ini! Kumpulkan lentera istiqomah dan raih koin berkah sebanyak-banyaknya.
+          Ayo lanjutkan petualangan mengaji hari ini! Kumpulkan lentera istiqomah
+          dan raih koin berkah sebanyak-banyaknya.
         </p>
 
         <div className="mt-4 pt-3 border-t border-[#F3E8D6] flex items-center justify-between text-xs font-bold text-emerald-800">
           <span>Koin Berkah Kamu:</span>
-          <span className="text-base font-extrabold text-amber-700">{totalPoint || 0} 🪙</span>
+          <span className="text-base font-extrabold text-amber-700">
+            {totalPoint || 0} 🪙
+          </span>
         </div>
       </TactileCard>
 
@@ -238,19 +307,24 @@ export default function DashboardPage() {
         <div className="absolute top-10 bottom-10 w-0 border-r-4 border-dashed border-[#E2D4BE] pointer-events-none z-0" />
 
         {DEFAULT_PATH_NODES.map((node, index) => {
-          const isDone = completedCourse?.includes(node.id) || index === 0;
-          // Determine status
           let status: "completed" | "current" | "locked" = "locked";
           if (completedCourse?.includes(node.id)) {
             status = "completed";
-          } else if (index === 0 || (completedCourse && completedCourse.includes(DEFAULT_PATH_NODES[index - 1]?.id))) {
+          } else if (
+            index === 0 ||
+            (completedCourse &&
+              completedCourse.includes(DEFAULT_PATH_NODES[index - 1]?.id))
+          ) {
             status = "current";
-          } else if (index === 1 && (!completedCourse || completedCourse.length === 0)) {
-            // First pending
+          } else if (
+            index === 1 &&
+            (!completedCourse || completedCourse.length === 0)
+          ) {
             status = "current";
           }
 
-          const targetCourseId = courses[index]?.id || courses[0]?.id || "jilid-1";
+          const targetCourseId =
+            courses[index]?.id || courses[0]?.id || "jilid-1";
 
           return (
             <div key={node.id} className="w-full flex justify-center z-10">

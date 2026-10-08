@@ -1,12 +1,12 @@
 import { collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { CoinTransaction, CoinTransactionSchema } from "@/types/schema";
+import { CoinTransaction, CoinTransactionSchema, CoinTransactionSource } from "@/types/schema";
 
 export const formatCoinTransactionPayload = (
   userId: string,
   amount: number,
   type: "EARNED" | "SPENT",
-  source: "QUIZ" | "REWARD_REDEEM" | "MANUAL_ADJUSTMENT" | "DAILY_BONUS",
+  source: CoinTransactionSource,
   referenceId?: string,
   description?: string
 ): Omit<CoinTransaction, "id"> => {
@@ -25,7 +25,7 @@ export const recordCoinTransaction = async (
   userId: string,
   amount: number,
   type: "EARNED" | "SPENT",
-  source: "QUIZ" | "REWARD_REDEEM" | "MANUAL_ADJUSTMENT" | "DAILY_BONUS",
+  source: CoinTransactionSource,
   referenceId?: string,
   description?: string
 ): Promise<{ success: boolean; id?: string; error?: string }> => {

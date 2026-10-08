@@ -58,28 +58,85 @@ export const RewardSchema = z.object({
 });
 export type Reward = z.infer<typeof RewardSchema>;
 
-export const RedeemRequestSchema = z.object({
+export const RedeemRequestStatusSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const upper = val.toUpperCase();
+    if (upper === "PENDING" || upper === "APPROVED" || upper === "REJECTED") {
+      return upper;
+    }
+  }
+  return val;
+}, z.enum(["PENDING", "APPROVED", "REJECTED"]).default("PENDING"));
+
+export type RedeemRequestStatus = z.infer<typeof RedeemRequestStatusSchema>;
+
+export const RedeemRequestSchema = z.preprocess((raw: any) => {
+  if (raw && typeof raw === "object") {
+    const points = raw.pointsRequired ?? raw.cost ?? 0;
+    const createdAt = raw.createdAt ?? raw.timestamp;
+    return {
+      ...raw,
+      pointsRequired: points,
+      cost: points,
+      createdAt: createdAt,
+      userName: raw.userName || "Santri",
+      rewardName: raw.rewardName || "Hadiah Santri",
+    };
+  }
+  return raw;
+}, z.object({
   id: z.string().optional(),
-  userId: z.string(),
-  rewardId: z.string(),
-  rewardName: z.string().optional(),
-  cost: z.number().int().positive(),
-  status: z.enum(["pending", "approved", "rejected"]).default("pending"),
+  userId: z.string().min(1, "User ID wajib diisi"),
+  userName: z.string().default("Santri"),
+  rewardId: z.string().min(1, "Reward ID wajib diisi"),
+  rewardName: z.string().default("Hadiah Santri"),
+  pointsRequired: z.number().int().positive("Poin harus bilangan bulat positif"),
+  cost: z.number().int().positive().optional(),
+  status: RedeemRequestStatusSchema,
+  ustadzId: z.string().nullable().optional(),
+  rejectionReason: z.string().nullable().optional(),
+  createdAt: z.any().optional(),
   timestamp: z.any().optional(),
-});
+  resolvedAt: z.any().optional(),
+  updatedAt: z.any().optional(),
+}));
+
 export type RedeemRequest = z.infer<typeof RedeemRequestSchema>;
+
+export const CoinTransactionSourceSchema = z.enum([
+  "QUIZ",
+  "REWARD_REDEEM",
+  "MANUAL_ADJUSTMENT",
+  "DAILY_BONUS",
+  "REWARD_REFUND",
+]);
+export type CoinTransactionSource = z.infer<typeof CoinTransactionSourceSchema>;
 
 export const CoinTransactionSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
   amount: z.number().int(),
   type: z.enum(["EARNED", "SPENT"]),
-  source: z.enum(["QUIZ", "REWARD_REDEEM", "MANUAL_ADJUSTMENT", "DAILY_BONUS"]),
+  source: CoinTransactionSourceSchema,
   referenceId: z.string().optional(),
   description: z.string().default(""),
   createdAt: z.any().optional(),
 });
 export type CoinTransaction = z.infer<typeof CoinTransactionSchema>;
+
+export const SetoranLogSchema = z.object({
+  id: z.string().optional(),
+  santriId: z.string().min(1),
+  santriName: z.string().min(1),
+  jilid: z.string().min(1),
+  page: z.number().int().positive(),
+  notes: z.string().optional(),
+  kelancaran: z.enum(["LANCAR", "CUKUP", "MENGULANG"]).default("LANCAR"),
+  bonusCoin: z.number().int().nonnegative().default(1),
+  ustadzId: z.string().min(1),
+  createdAt: z.any().optional(),
+});
+export type SetoranLog = z.infer<typeof SetoranLogSchema>;
 
 export const QuizAttemptSchema = z.object({
   id: z.string().optional(),

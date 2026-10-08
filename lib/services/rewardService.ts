@@ -1,6 +1,20 @@
-import { collection, addDoc, doc, updateDoc, increment, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  getDoc,
+  increment,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+  serverTimestamp,
+  runTransaction,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Reward, RewardSchema, RedeemRequest } from "@/types/schema";
+import { Reward, RewardSchema, RedeemRequest, RedeemRequestSchema } from "@/types/schema";
 import { recordCoinTransaction } from "@/lib/services/coinService";
 
 export const DEFAULT_REWARDS: Reward[] = [
@@ -47,7 +61,8 @@ export const getRewards = async (): Promise<Reward[]> => {
 export const redeemReward = async (
   userId: string,
   userPoints: number,
-  reward: Reward
+  reward: Reward,
+  userName: string = "Santri"
 ): Promise<{ success: boolean; newPoints?: number; error?: string }> => {
   const check = validateRedeemAffordability(userPoints, reward.pointsRequired);
   if (!check.canRedeem) {
@@ -55,12 +70,15 @@ export const redeemReward = async (
   }
 
   try {
-    await addDoc(collection(db, "redeem_requests"), {
+    const docRef = await addDoc(collection(db, "redeem_requests"), {
       userId,
+      userName,
       rewardId: reward.id,
       rewardName: reward.name,
+      pointsRequired: reward.pointsRequired,
       cost: reward.pointsRequired,
-      status: "pending",
+      status: "PENDING",
+      createdAt: serverTimestamp(),
       timestamp: new Date(),
     });
 
@@ -73,7 +91,7 @@ export const redeemReward = async (
       -reward.pointsRequired,
       "SPENT",
       "REWARD_REDEEM",
-      reward.id,
+      docRef.id || reward.id,
       `Penukaran hadiah: ${reward.name}`
     );
 
@@ -87,5 +105,210 @@ export const redeemReward = async (
       success: false,
       error: error?.message || "Gagal menukar hadiah di server. Silakan coba lagi.",
     };
+  }
+};
+
+/**
+ * Mengambil seluruh klaim hadiah santri yang berstatus PENDING.
+ * Digunakan pada antrean Ustadz untuk persetujuan.
+ */
+export const getPendingRedeemRequests = async (): Promise<RedeemRequest[]> => {
+  try {
+    const q = query(
+      collection(db, "redeem_requests"),
+      where("status", "in", ["PENDING", "pending"]),
+      orderBy("createdAt", "desc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => RedeemRequestSchema.parse({ id: d.id, ...d.data() }));
+  } catch (error) {
+    // Resilient fallback jika composite index belum aktif di Firestore
+    try {
+      const fallbackQ = query(
+        collection(db, "redeem_requests"),
+        where("status", "in", ["PENDING", "pending"])
+      );
+      const snap = await getDocs(fallbackQ);
+      return snap.docs
+        .map((d) => RedeemRequestSchema.parse({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const timeA = a.createdAt?.toMillis
+            ? a.createdAt.toMillis()
+            : new Date(a.createdAt || 0).getTime();
+          const timeB = b.createdAt?.toMillis
+            ? b.createdAt.toMillis()
+            : new Date(b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
+    } catch (fallbackError) {
+      console.error("Error fetching pending redeem requests:", fallbackError);
+      return [];
+    }
+  }
+};
+
+/**
+ * Mengambil seluruh riwayat klaim hadiah santri (PENDING, APPROVED, REJECTED).
+ */
+export const getAllRedeemRequests = async (
+  limitCount: number = 50
+): Promise<RedeemRequest[]> => {
+  try {
+    const q = query(
+      collection(db, "redeem_requests"),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => RedeemRequestSchema.parse({ id: d.id, ...d.data() }));
+  } catch (error) {
+    try {
+      const snap = await getDocs(collection(db, "redeem_requests"));
+      return snap.docs
+        .map((d) => RedeemRequestSchema.parse({ id: d.id, ...d.data() }))
+        .slice(0, limitCount);
+    } catch (fallbackErr) {
+      console.error("Error fetching all redeem requests:", fallbackErr);
+      return [];
+    }
+  }
+};
+
+/**
+ * Mengambil riwayat klaim hadiah santri tertentu.
+ */
+export const getUserRedeemRequests = async (
+  userId: string
+): Promise<RedeemRequest[]> => {
+  try {
+    const q = query(
+      collection(db, "redeem_requests"),
+      where("userId", "==", userId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => RedeemRequestSchema.parse({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const timeA = a.createdAt?.toMillis
+          ? a.createdAt.toMillis()
+          : new Date(a.createdAt || 0).getTime();
+        const timeB = b.createdAt?.toMillis
+          ? b.createdAt.toMillis()
+          : new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      });
+  } catch (error) {
+    console.error("Error fetching user redeem requests:", error);
+    return [];
+  }
+};
+
+/**
+ * Menyetujui permohonan penukaran hadiah santri oleh Ustadz.
+ * Memvalidasi status PENDING dan menandai serah terima hadiah tanpa memotong koin kembali.
+ */
+export const approveRedeemRequest = async (
+  requestId: string,
+  ustadzId: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const requestRef = doc(db, "redeem_requests", requestId);
+    const requestSnap = await getDoc(requestRef);
+
+    if (!requestSnap.exists()) {
+      return { success: false, error: "Permintaan klaim hadiah tidak ditemukan." };
+    }
+
+    const data = requestSnap.data();
+    const currentStatus = String(data.status || "").toUpperCase();
+
+    if (currentStatus !== "PENDING") {
+      return {
+        success: false,
+        error: `Permintaan sudah diproses sebelumnya (Status saat ini: ${currentStatus}).`,
+      };
+    }
+
+    await updateDoc(requestRef, {
+      status: "APPROVED",
+      ustadzId,
+      resolvedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error approving redeem request:", error);
+    return { success: false, error: error?.message || "Gagal menyetujui klaim hadiah." };
+  }
+};
+
+/**
+ * Menolak permohonan penukaran hadiah santri oleh Ustadz.
+ * Mengembalikan koin santri secara atomik dan mencatat transaksi REWARD_REFUND.
+ */
+export const rejectRedeemRequest = async (
+  requestId: string,
+  ustadzId: string,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    let refundInfo: { userId: string; points: number; rewardName: string } | null = null;
+
+    // Eksekusi transaksi atomik Firestore untuk menjamin integritas data
+    await runTransaction(db, async (tx) => {
+      const requestRef = doc(db, "redeem_requests", requestId);
+      const requestSnap = await tx.get(requestRef);
+
+      if (!requestSnap.exists()) {
+        throw new Error("Permintaan klaim hadiah tidak ditemukan.");
+      }
+
+      const data = requestSnap.data();
+      const currentStatus = String(data.status || "").toUpperCase();
+
+      if (currentStatus !== "PENDING") {
+        throw new Error(`Permintaan sudah diproses sebelumnya (${currentStatus}).`);
+      }
+
+      const pointsToRefund = data.pointsRequired ?? data.cost ?? 0;
+      const targetUserId = data.userId;
+      const rewardName = data.rewardName || "Hadiah Santri";
+
+      refundInfo = { userId: targetUserId, points: pointsToRefund, rewardName };
+
+      // 1. Perbarui status dokumen klaim ke REJECTED
+      tx.update(requestRef, {
+        status: "REJECTED",
+        ustadzId,
+        rejectionReason: reason?.trim() || "Penukaran hadiah ditolak oleh Ustadz",
+        resolvedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      // 2. Kembalikan total poin ke akun santri secara atomik
+      const userRef = doc(db, "users", targetUserId);
+      tx.update(userRef, {
+        totalPoint: increment(pointsToRefund),
+      });
+    });
+
+    // 3. Catat audit ledger koin setelah transaksi database berhasil
+    if (refundInfo) {
+      const { userId, points, rewardName } = refundInfo;
+      await recordCoinTransaction(
+        userId,
+        points,
+        "EARNED",
+        "REWARD_REFUND",
+        requestId,
+        `Pengembalian koin: Penukaran hadiah "${rewardName}" ditolak (${reason?.trim() || "Ditolak Ustadz"})`
+      );
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error rejecting redeem request:", error);
+    return { success: false, error: error?.message || "Gagal menolak klaim hadiah." };
   }
 };
