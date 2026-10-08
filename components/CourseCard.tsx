@@ -1,12 +1,17 @@
+"use client";
+
+import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import missingImage from "@/public/assets/missing_image.png";
-import { Play, Star, ListChecks } from "lucide-react";
+import TactileCard from "@/components/ui/TactileCard";
+import TactileButton from "@/components/ui/TactileButton";
+import GoldBadge from "@/components/ui/GoldBadge";
+import { BookOpen, ListChecks, Play } from "lucide-react";
 
-const CourseCard = ({ course }: any) => {
+export default function CourseCard({ course }: { course: any }) {
   const router = useRouter();
-  const { uid } = useAuth();
+  const { uid, completedCourse } = useAuth();
 
   const handleCardClick = () => {
     if (uid) {
@@ -19,55 +24,70 @@ const CourseCard = ({ course }: any) => {
   const imageUrl =
     course.imageUrl &&
     typeof course.imageUrl === "string" &&
-    (course.imageUrl.startsWith("http://") ||
-      course.imageUrl.startsWith("https://"))
+    (course.imageUrl.startsWith("http://") || course.imageUrl.startsWith("https://"))
       ? course.imageUrl
-      : missingImage.src;
+      : "/assets/missing_image.png";
+
+  const isCompleted = completedCourse?.includes(course.id);
 
   return (
-    <div
-      className="group flex flex-col bg-white rounded-3xl shadow-sm border border-slate-100 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-indigo-200 overflow-hidden"
-      onClick={handleCardClick}
-    >
-      <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
+    <TactileCard className="group flex flex-col overflow-hidden bg-white hover:border-emerald-500/50 transition-all">
+      {/* Cover image */}
+      <div className="relative h-40 w-full bg-emerald-50/50 overflow-hidden border-b border-[#F3E8D6]">
         <Image
           src={imageUrl}
           alt={course.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform delay-75">
-            <Play className="w-8 h-8 ml-1" />
-          </div>
-        </div>
-      </div>
-      
-      <div className="p-6 flex flex-col flex-1">
-        <h2 className="text-xl font-bold text-slate-800 mb-2 line-clamp-1 group-hover:text-indigo-600 transition-colors">{course.title}</h2>
-        <p className="text-slate-500 text-sm mb-4 line-clamp-2 flex-1">{course.description}</p>
-        
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-slate-400 uppercase">Level</span>
-            <span className="text-sm font-semibold text-slate-700">{course.level || "Pemula"}</span>
-          </div>
-          
-          <div className="flex gap-4">
-            <div className="flex items-center gap-1 text-slate-600 bg-slate-50 px-2 py-1 rounded-lg">
-              <ListChecks className="w-4 h-4 text-teal-500" />
-              <span className="text-sm font-bold">{course.totalQuestions || 0} Soal</span>
-            </div>
-            
-            <div className="flex items-center gap-1 text-slate-600 bg-amber-50 px-2 py-1 rounded-lg">
-              <Star className="w-4 h-4 text-amber-500 fill-current" />
-              <span className="text-sm font-bold text-amber-600">{course.point || 0} Poin</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-export default CourseCard;
+        {/* Level badge overlay */}
+        <div className="absolute top-3 right-3 z-10">
+          <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-white/95 text-emerald-800 rounded-full border border-emerald-200/80 shadow-xs">
+            {course.level || "Pemula"}
+          </span>
+        </div>
+
+        {isCompleted && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="px-2.5 py-1 text-xs font-black bg-emerald-600 text-white rounded-full shadow-xs">
+              ✓ Selesai
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex flex-col flex-1 gap-3">
+        <div>
+          <h2 className="text-base font-extrabold text-slate-800 line-clamp-1 group-hover:text-emerald-700 transition-colors">
+            {course.title}
+          </h2>
+          <p className="text-slate-500 text-xs font-medium line-clamp-2 mt-1">
+            {course.description}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#F3E8D6]">
+          <div className="flex items-center gap-1.5 text-slate-600 text-xs font-bold">
+            <ListChecks className="w-4 h-4 text-emerald-600" />
+            <span>{course.totalQuestions || 0} Soal</span>
+          </div>
+
+          <GoldBadge type="coin" value={`${course.point || 10} Poin`} size="sm" />
+        </div>
+
+        <TactileButton
+          fullWidth
+          size="sm"
+          variant={isCompleted ? "secondary" : "primary"}
+          onClick={handleCardClick}
+          className="mt-1"
+        >
+          <Play className="w-3.5 h-3.5" />
+          <span>{isCompleted ? "Pelajari Lagi" : "Mulai Belajar"}</span>
+        </TactileButton>
+      </div>
+    </TactileCard>
+  );
+}

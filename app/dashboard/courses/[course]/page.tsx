@@ -4,13 +4,22 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getCourseById, Course } from "@/lib/courses";
-import { ChevronLeft, BookOpen, Layers, Award, PlayCircle } from "lucide-react";
+import TactileCard from "@/components/ui/TactileCard";
+import TactileButton from "@/components/ui/TactileButton";
+import GoldBadge from "@/components/ui/GoldBadge";
+import ArabicText from "@/components/ui/ArabicText";
+import { ArrowLeft, BookOpen, Layers, PlayCircle, Sparkles } from "lucide-react";
+import Image from "next/image";
 
-const CourseDetail = ({ params }: { params: Promise<{ course: string }> }) => {
+export default function CourseDetail({
+  params,
+}: {
+  params: Promise<{ course: string }>;
+}) {
   const { course } = React.use(params);
   const [courseData, setCourseData] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
-  const { uid } = useAuth();
+  const { uid, completedCourse } = useAuth();
   const router = useRouter();
 
   const handleTakeExam = () => {
@@ -40,91 +49,116 @@ const CourseDetail = ({ params }: { params: Promise<{ course: string }> }) => {
   if (loading || !courseData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-500 font-medium">Memuat detail materi...</p>
+        <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-500 text-xs font-bold">Memuat detail materi...</p>
       </div>
     );
   }
 
+  const isCompleted = completedCourse?.includes(course);
+  const imageUrl =
+    courseData.imageUrl &&
+    (courseData.imageUrl.startsWith("http://") || courseData.imageUrl.startsWith("https://"))
+      ? courseData.imageUrl
+      : "/assets/missing_image.png";
+
   return (
-    <div className="max-w-4xl mx-auto flex flex-col gap-6 py-6 px-4">
+    <div className="flex flex-col gap-5 w-full select-none pb-12">
+      {/* Back Button */}
       <button
+        type="button"
         onClick={() => router.push("/dashboard/courses")}
-        className="self-start flex items-center gap-2 text-slate-500 hover:text-slate-800 font-semibold transition-colors cursor-pointer"
+        className="self-start inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors cursor-pointer"
       >
-        <ChevronLeft className="w-5 h-5" />
+        <ArrowLeft className="w-4 h-4" />
         <span>Kembali ke Daftar Materi</span>
       </button>
 
-      <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 flex flex-col">
-        {/* Cover Image */}
-        <div className="w-full h-64 md:h-80 relative bg-slate-100 overflow-hidden">
-          <img
-            src={courseData.imageUrl || "https://placehold.co/800x400/indigo/white?text=Materi+SibaQ"}
+      <TactileCard className="overflow-hidden bg-white p-0">
+        {/* Cover Image Banner */}
+        <div className="w-full h-48 sm:h-56 relative bg-emerald-50 overflow-hidden border-b border-[#F3E8D6]">
+          <Image
+            src={imageUrl}
             alt={courseData.title || "Course Cover"}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
-          <div className="absolute top-4 right-4">
-            <span className="px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/90 backdrop-blur-md rounded-full shadow-sm">
+
+          <div className="absolute top-3 right-3 z-10 flex gap-2">
+            <span className="px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-white/95 rounded-full border border-emerald-200/80 shadow-xs">
               {courseData.level || "Dasar"}
             </span>
           </div>
+
+          {isCompleted && (
+            <div className="absolute top-3 left-3 z-10">
+              <span className="px-3 py-1 text-xs font-black bg-emerald-600 text-white rounded-full shadow-xs">
+                ✓ Sudah Lulus
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content Details */}
-        <div className="p-6 md:p-10 flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-bold text-indigo-600 uppercase tracking-wide">
-              {courseData.category || "Tahsin / Hijaiyah"}
-            </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800">
+        <div className="p-5 sm:p-6 flex flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
+                {courseData.category || "Tahsin / Hijaiyah"}
+              </span>
+            </div>
+
+            <h1 className="text-2xl font-black text-slate-900 mt-1">
               {courseData.title || "Materi Pembelajaran"}
             </h1>
           </div>
 
-          <p className="text-slate-600 leading-relaxed text-base md:text-lg">
-            {courseData.description || "Pelajari materi ini dengan saksama dan jawab pertanyaan kuis interaktif untuk mengumpulkan poin!"}
+          <p className="text-slate-600 text-sm leading-relaxed font-medium">
+            {courseData.description ||
+              "Pelajari materi ini dengan saksama dan jawab pertanyaan kuis interaktif untuk mengumpulkan poin berkah!"}
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-              <BookOpen className="w-5 h-5 text-indigo-600" />
-              <div>
-                <p className="text-xs text-slate-400 font-semibold uppercase">Total Soal</p>
-                <p className="text-base font-bold text-slate-800">{courseData.totalQuestions || "5"} Soal</p>
-              </div>
+          {/* Stats Bar */}
+          <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-[#F3E8D6]">
+            <div className="p-3 bg-[#FDFBF7] border border-[#F3E8D6] rounded-2xl flex flex-col items-center text-center">
+              <BookOpen className="w-4 h-4 text-emerald-700 mb-1" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Jumlah Soal</span>
+              <span className="text-sm font-black text-slate-800">
+                {courseData.totalQuestions || "5"} Soal
+              </span>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-              <Award className="w-5 h-5 text-amber-500" />
-              <div>
-                <p className="text-xs text-slate-400 font-semibold uppercase">Reward</p>
-                <p className="text-base font-bold text-slate-800">Poin Hadiah</p>
-              </div>
+            <div className="p-3 bg-[#FDFBF7] border border-[#F3E8D6] rounded-2xl flex flex-col items-center text-center">
+              <Sparkles className="w-4 h-4 text-amber-600 mb-1" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Hadiah</span>
+              <span className="text-sm font-black text-amber-700">
+                +{(courseData.totalQuestions || 5) * 2} 🪙
+              </span>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl col-span-2 sm:col-span-1">
-              <Layers className="w-5 h-5 text-teal-600" />
-              <div>
-                <p className="text-xs text-slate-400 font-semibold uppercase">Tingkat</p>
-                <p className="text-base font-bold text-slate-800">{courseData.level || "Santri Awal"}</p>
-              </div>
+            <div className="p-3 bg-[#FDFBF7] border border-[#F3E8D6] rounded-2xl flex flex-col items-center text-center">
+              <Layers className="w-4 h-4 text-emerald-700 mb-1" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Tingkat</span>
+              <span className="text-sm font-black text-slate-800">
+                {courseData.level || "Santri"}
+              </span>
             </div>
           </div>
 
+          {/* CTA Button */}
           <div className="pt-2">
-            <button
+            <TactileButton
+              fullWidth
+              variant="primary"
+              size="lg"
               onClick={handleTakeExam}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-lg rounded-2xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all cursor-pointer"
             >
-              <PlayCircle className="w-6 h-6" />
-              <span>Mulai Belajar & Kerjakan Kuis</span>
-            </button>
+              <PlayCircle className="w-5 h-5" />
+              <span>{isCompleted ? "Ulangi & Uji Kemampuan" : "Mulai Belajar & Kerjakan Kuis"}</span>
+            </TactileButton>
           </div>
         </div>
-      </div>
+      </TactileCard>
     </div>
   );
-};
-
-export default CourseDetail;
+}
