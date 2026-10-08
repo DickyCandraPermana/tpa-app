@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
@@ -76,4 +77,28 @@ export async function logoutUser() {
     return { success: false, message: err.message };
   }
 }
+
+export async function changeUserPassword(newPassword: string) {
+  if (!auth.currentUser) {
+    return { success: false, message: "Pengguna belum login." };
+  }
+  try {
+    await updatePassword(auth.currentUser, newPassword);
+    return { success: true };
+  } catch (err: any) {
+    console.error("Gagal mengubah kata sandi:", err);
+    if (err.code === "auth/requires-recent-login") {
+      return {
+        success: false,
+        message:
+          "Demi keamanan akun, silakan keluar dan login ulang sebelum mengganti kata sandi.",
+      };
+    }
+    return {
+      success: false,
+      message: err.message || "Gagal mengubah kata sandi.",
+    };
+  }
+}
+
 

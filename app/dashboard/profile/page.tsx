@@ -9,7 +9,7 @@ import TactileButton from "@/components/ui/TactileButton";
 import GoldBadge from "@/components/ui/GoldBadge";
 import ArabicText from "@/components/ui/ArabicText";
 import AvatarUploadModal from "@/components/features/AvatarUploadModal";
-import { BookOpen, Gift, LogOut, Award, User, Sparkles, Camera } from "lucide-react";
+import { BookOpen, Gift, LogOut, Award, User, Sparkles, Camera, Settings } from "lucide-react";
 import Link from "next/link";
 import { logoutUser } from "@/lib/auth";
 
@@ -135,6 +135,22 @@ export default function ProfilePage() {
               </h2>
               <p className="text-xs text-slate-500 font-medium">
                 Tukar poin dengan hadiah
+              </p>
+            </div>
+          </TactileCard>
+        </Link>
+
+        <Link href="/dashboard/settings" className="sm:col-span-2">
+          <TactileCard className="p-5 flex items-center gap-4 hover:border-slate-400/50 transition-all cursor-pointer">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0">
+              <Settings className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-800">
+                Pengaturan Akun
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                Ganti kata sandi, preferensi audio &amp; aplikasi
               </p>
             </div>
           </TactileCard>
