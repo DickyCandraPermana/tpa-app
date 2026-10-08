@@ -13,6 +13,7 @@ import {
   BookMarked,
   ShieldCheck,
   Settings,
+  Trophy,
 } from "lucide-react";
 
 export interface AdaptiveBottomNavProps {
@@ -27,12 +28,12 @@ export default function AdaptiveBottomNav({
   const pathname = usePathname();
   const currentPath = activePath ?? pathname ?? "/dashboard";
 
-  const isUstaz = role === "ustaz" || role === "admin";
+  const isUstaz = role === "ustaz" || role === "admin" || role === "ustadz";
 
   const santriNav = [
     { label: "Peta", href: "/dashboard", icon: Map },
     { label: "Materi", href: "/dashboard/courses", icon: BookOpen },
-    { label: "Kuis", href: "/dashboard/courses", icon: Target },
+    { label: "Peringkat", href: "/dashboard/leaderboard", icon: Trophy },
     { label: "Toko", href: "/dashboard/exchange", icon: Gift },
     { label: "Profil", href: "/dashboard/profile", icon: User },
   ];
@@ -40,6 +41,7 @@ export default function AdaptiveBottomNav({
   const ustazNav = [
     { label: "Progres", href: "/dashboard", icon: Users },
     { label: "Modul", href: "/dashboard/courses", icon: BookMarked },
+    { label: "Peringkat", href: "/dashboard/leaderboard", icon: Trophy },
     { label: "Klaim", href: "/dashboard/exchange", icon: ShieldCheck },
     { label: "Akun", href: "/dashboard/profile", icon: Settings },
   ];

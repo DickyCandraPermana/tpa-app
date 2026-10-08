@@ -17,15 +17,16 @@ describe("AdaptiveBottomNav Component", () => {
     render(<AdaptiveBottomNav role="santri" activePath="/dashboard" />);
     expect(screen.getByText("Peta")).toBeDefined();
     expect(screen.getByText("Materi")).toBeDefined();
-    expect(screen.getByText("Kuis")).toBeDefined();
+    expect(screen.getByText("Peringkat")).toBeDefined();
     expect(screen.getByText("Toko")).toBeDefined();
     expect(screen.getByText("Profil")).toBeDefined();
   });
 
-  it("renders 4 ustaz tabs when role is 'ustaz'", () => {
+  it("renders 5 ustaz tabs when role is 'ustaz'", () => {
     render(<AdaptiveBottomNav role="ustaz" activePath="/dashboard" />);
     expect(screen.getByText("Progres")).toBeDefined();
     expect(screen.getByText("Modul")).toBeDefined();
+    expect(screen.getByText("Peringkat")).toBeDefined();
     expect(screen.getByText("Klaim")).toBeDefined();
     expect(screen.getByText("Akun")).toBeDefined();
   });
@@ -35,6 +36,6 @@ describe("AdaptiveBottomNav Component", () => {
     render(<AdaptiveBottomNav role={undefined as any} activePath="/dashboard" />);
     expect(screen.getByText("Peta")).toBeDefined();
     expect(screen.getByText("Materi")).toBeDefined();
-    expect(screen.getByText("Kuis")).toBeDefined();
+    expect(screen.getByText("Peringkat")).toBeDefined();
   });
 });
