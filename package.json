@@ -23,6 +23,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.1.2",
     "autoprefixer": "^10.4.21",
     "happy-dom": "^20.14.5",
     "postcss": "^8.5.5",
