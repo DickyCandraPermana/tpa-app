@@ -50,10 +50,10 @@ export type Question = z.infer<typeof QuestionSchema>;
 export const RewardSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
-  description: z.string().optional().default(""),
+  description: z.string().optional(),
   pointsRequired: z.number().int().positive(),
-  imageUrl: z.string().optional(),
-  stock: z.number().int().nonnegative().optional().default(100),
+  stock: z.number().int().nonnegative().optional(),
+  imageUrl: z.string().url().optional(),
 });
 export type Reward = z.infer<typeof RewardSchema>;
 
