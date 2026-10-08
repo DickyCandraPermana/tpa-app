@@ -1,40 +1,71 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import login_banner from "@/public/assets/login_banner.jpg";
-import Container from "@/components/Container";
+import TactileButton from "@/components/ui/TactileButton";
+import TactileCard from "@/components/ui/TactileCard";
+import ArabicText from "@/components/ui/ArabicText";
+import { LogIn, UserPlus, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function AuthPage() {
   const router = useRouter();
 
   return (
-    <Container title="Selamat Datang" description="">
-      <Image
-        src={login_banner}
-        alt="Login Banner"
-        width={400}
-        height={150}
-        className="mb-6"
-      />
-
-      <p className="mb-6 text-center font-medium text-slate-600 text-lg">
-        Silakan pilih metode autentikasi:
-      </p>
-      <div className="flex flex-col gap-4 w-full">
-        <button
-          onClick={() => router.push("/login")}
-          className="w-full px-6 py-4 font-bold text-lg text-white transition-all bg-indigo-600 rounded-2xl shadow-lg hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-indigo-200"
+    <main className="min-h-screen w-full bg-[#FDFBF7] flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm flex flex-col items-center">
+        {/* Back to Home */}
+        <Link
+          href="/"
+          className="self-start inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors mb-4"
         >
-          Masuk (Login)
-        </button>
+          <ArrowLeft className="w-4 h-4" />
+          <span>Kembali ke Beranda</span>
+        </Link>
 
-        <button
-          onClick={() => router.push("/register")}
-          className="w-full px-6 py-4 font-bold text-lg text-white transition-all bg-teal-500 rounded-2xl shadow-lg hover:-translate-y-1 hover:bg-teal-600 hover:shadow-teal-200"
-        >
-          Buat Akun Baru
-        </button>
+        <TactileCard className="w-full p-6 flex flex-col items-center text-center">
+          <ArabicText text="أَهْلًا وَسَهْلًا" size="lg" className="text-emerald-900 mb-2" />
+
+          {/* Banner image */}
+          <div className="w-full h-32 rounded-2xl overflow-hidden relative mb-4 border border-[#F3E8D6]">
+            <Image
+              src="/assets/login_banner.jpg"
+              alt="Selamat Datang di SibaQ"
+              fill
+              className="object-cover"
+            />
+          </div>
+
+          <h1 className="text-xl font-black text-slate-900 mb-1">
+            Selamat Datang di SibaQ
+          </h1>
+          <p className="text-xs text-slate-500 font-medium mb-6">
+            Pilih langkah untuk memulai petualangan mengaji:
+          </p>
+
+          <div className="flex flex-col gap-3 w-full">
+            <TactileButton
+              fullWidth
+              variant="primary"
+              size="md"
+              onClick={() => router.push("/login")}
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Masuk (Login)</span>
+            </TactileButton>
+
+            <TactileButton
+              fullWidth
+              variant="secondary"
+              size="md"
+              onClick={() => router.push("/register")}
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Daftar Akun Baru</span>
+            </TactileButton>
+          </div>
+        </TactileCard>
       </div>
-    </Container>
+    </main>
   );
 }

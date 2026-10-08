@@ -1,72 +1,107 @@
 "use client";
 
 import Link from "next/link";
-import { Star, BookOpen, Gift, ChevronRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import TactileButton from "@/components/ui/TactileButton";
+import TactileCard from "@/components/ui/TactileCard";
+import ArabicText from "@/components/ui/ArabicText";
+import { Map, Target, Gift, ArrowRight, Sparkles } from "lucide-react";
 
 export default function Home() {
+  const { uid } = useAuth();
+
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-6 py-12 bg-slate-50 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none opacity-20">
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-indigo-300 rounded-full blur-3xl" />
-        <div className="absolute top-40 -right-20 w-80 h-80 bg-amber-200 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 left-1/4 w-96 h-96 bg-teal-200 rounded-full blur-3xl" />
+    <main className="min-h-screen w-full bg-[#FDFBF7] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden text-slate-800">
+      {/* Subtle geometric & light ambience */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-25 overflow-hidden z-0">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-200/50 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-amber-200/50 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 left-1/4 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl" />
       </div>
 
-      <div className="z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
-        <div className="mb-6 flex justify-center items-center p-6 bg-white rounded-[2rem] shadow-xl shadow-indigo-100/50 w-32 h-32 transform hover:scale-105 transition-transform duration-300">
-          <BookOpen className="w-16 h-16 text-indigo-600" />
+      <div className="z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center">
+        {/* Basmalah & Dome Icon */}
+        <div className="mb-4">
+          <ArabicText
+            text="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+            size="md"
+            className="text-emerald-900 drop-shadow-xs"
+          />
         </div>
-        
-        <h1 className="mb-6 text-5xl md:text-7xl font-extrabold text-center text-slate-800 tracking-tight leading-tight">
-          Belajar TPA dengan <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-500">
-            Sangat Menyenangkan!
+
+        {/* Badge */}
+        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-full text-xs font-extrabold text-emerald-800 shadow-xs mb-6">
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <span>Taman Belajar Santri Digital</span>
+        </div>
+
+        {/* Hero Headline */}
+        <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+          Belajar Mengaji Asyik &amp; Berkah Bersama{" "}
+          <span className="text-emerald-700 underline decoration-[#F59E0B] decoration-wavy decoration-2">
+            SibaQ
           </span>
         </h1>
-        
-        <p className="max-w-2xl mb-12 text-xl md:text-2xl text-center text-slate-600 font-medium">
-          Latih kemampuanmu membaca Al-Qur'an, jawab kuis interaktif, dan kumpulkan poin untuk ditukar dengan hadiah menarik.
+
+        <p className="text-base sm:text-lg text-slate-600 font-medium mb-8 max-w-md">
+          Jelajahi peta petualangan huruf hijaiyah, jawab kuis penuh pahala, kumpulkan lentera istiqomah, dan tukar koin berkah dengan hadiah nyata!
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 w-full max-w-3xl">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3">
-            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-lg text-slate-800">Materi Audio & Visual</h3>
-          </div>
-          
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3">
-            <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
-              <Star className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-lg text-slate-800">Kuis & Gamifikasi</h3>
-          </div>
-          
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3">
-            <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center">
-              <Gift className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-lg text-slate-800">Tukar Poin Hadiah</h3>
-          </div>
+        {/* Tactile Giant CTA */}
+        <div className="w-full max-w-xs mb-10 flex flex-col gap-3">
+          <Link href={uid ? "/dashboard" : "/auth"} className="w-full">
+            <TactileButton fullWidth size="lg" variant="primary" className="text-lg">
+              <span>{uid ? "Lanjut Petualangan" : "Mulai Petualangan Mengaji"}</span>
+              <ArrowRight className="w-5 h-5" />
+            </TactileButton>
+          </Link>
+
+          {uid && (
+            <Link href="/dashboard/courses" className="w-full">
+              <TactileButton fullWidth size="md" variant="secondary">
+                Daftar Materi Kuis
+              </TactileButton>
+            </Link>
+          )}
         </div>
 
-        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-6 w-full max-w-md">
-          <Link
-            href="/auth"
-            className="group flex-1 flex items-center justify-center gap-2 px-8 py-4 font-bold text-lg text-white transition-all bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200 hover:-translate-y-1 active:translate-y-0 rounded-2xl w-full"
-          >
-            Mulai Belajar
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          
-          <Link
-            href="/dashboard"
-            className="flex-1 flex items-center justify-center px-8 py-4 font-bold text-lg text-indigo-600 transition-all bg-white border-2 border-indigo-100 hover:border-indigo-200 hover:bg-indigo-50 rounded-2xl w-full"
-          >
-            Dashboard Ku
-          </Link>
+        {/* 3 Feature Highlights */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 w-full">
+          <TactileCard className="p-4 flex flex-col items-center text-center gap-2">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+              <Map className="w-6 h-6" />
+            </div>
+            <h3 className="font-extrabold text-sm text-slate-800">
+              Peta Jalur Iqro
+            </h3>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Petualangan level hijaiyah bertahap dan terstruktur.
+            </p>
+          </TactileCard>
+
+          <TactileCard className="p-4 flex flex-col items-center text-center gap-2">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+              <Target className="w-6 h-6" />
+            </div>
+            <h3 className="font-extrabold text-sm text-slate-800">
+              Arena Kuis Pahala
+            </h3>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Latihan interaktif ramah anak tanpa rasa takut salah.
+            </p>
+          </TactileCard>
+
+          <TactileCard className="p-4 flex flex-col items-center text-center gap-2">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+              <Gift className="w-6 h-6" />
+            </div>
+            <h3 className="font-extrabold text-sm text-slate-800">
+              Toko Hadiah Santri
+            </h3>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Tukar koin berkah dengan hadiah nyata bersama ustadz.
+            </p>
+          </TactileCard>
         </div>
       </div>
     </main>
