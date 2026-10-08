@@ -24,10 +24,18 @@ export function calculateQuizResults(
   };
 }
 
+export interface QuizCompletionData {
+  correctCount: number;
+  totalQuestions: number;
+  scorePercent: number;
+  pointsEarned: number;
+  selectedAnswers: { [key: number]: string };
+}
+
 interface UseQuizSessionProps {
   questions: Question[];
   onAddPoints: (points: number) => Promise<void>;
-  onCompleteCourse: () => Promise<void>;
+  onCompleteCourse: (data?: QuizCompletionData) => Promise<void>;
 }
 
 export function useQuizSession({
@@ -93,14 +101,21 @@ export function useQuizSession({
   const handleFinishQuiz = useCallback(async () => {
     setIsSubmitting(true);
     try {
-      await onCompleteCourse();
+      const summary = calculateQuizResults(isCorrectMap, totalQuestions);
+      await onCompleteCourse({
+        correctCount: summary.correctCount,
+        totalQuestions,
+        scorePercent: summary.scorePercent,
+        pointsEarned: sessionPoints,
+        selectedAnswers,
+      });
     } catch (err) {
       console.error("Error completing course:", err);
     } finally {
       setIsSubmitting(false);
       setIsQuizCompleted(true);
     }
-  }, [onCompleteCourse]);
+  }, [onCompleteCourse, isCorrectMap, totalQuestions, sessionPoints, selectedAnswers]);
 
   const handleRestartQuiz = useCallback(() => {
     setCurrentIndex(0);

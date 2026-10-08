@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCourseQuestions, getCourseById } from "@/lib/services/courseService";
 import { addPoints, markCourseCompleted } from "@/lib/services/userService";
+import { recordCoinTransaction } from "@/lib/services/coinService";
+import { recordQuizAttempt } from "@/lib/services/quizService";
 import { useAuth } from "@/context/AuthContext";
 import { useQuizSession } from "@/hooks/useQuizSession";
 import { Course, Question } from "@/types/schema";
@@ -67,9 +69,35 @@ export default function TakeCoursePage({
         }
       }
     },
-    onCompleteCourse: async () => {
+    onCompleteCourse: async (summary) => {
       if (uid && course) {
         await markCourseCompleted(uid, course);
+        if (summary) {
+          const answersRecord: Record<string, string> = {};
+          Object.entries(summary.selectedAnswers).forEach(([idx, val]) => {
+            const q = questions[Number(idx)];
+            if (q) answersRecord[q.id] = val;
+          });
+
+          await recordQuizAttempt(
+            uid,
+            course,
+            summary.correctCount,
+            summary.totalQuestions,
+            answersRecord
+          );
+
+          if (summary.pointsEarned > 0) {
+            await recordCoinTransaction(
+              uid,
+              summary.pointsEarned,
+              "EARNED",
+              "QUIZ",
+              course,
+              `Menyelesaikan kuis ${courseData?.title || course}`
+            );
+          }
+        }
       }
     },
   });
