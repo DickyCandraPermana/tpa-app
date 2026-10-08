@@ -8,16 +8,16 @@ import { useAuth } from "@/context/AuthContext";
 import { useQuizSession } from "@/hooks/useQuizSession";
 import { Course, Question } from "@/types/schema";
 import QuestionCard from "@/components/QuestionCard";
-import PointBadge from "@/components/PointBadge";
+import ScoreCelebration from "@/components/features/ScoreCelebration";
+import TactileButton from "@/components/ui/TactileButton";
+import TactileCard from "@/components/ui/TactileCard";
+import GoldBadge from "@/components/ui/GoldBadge";
 import {
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
-  Trophy,
-  RotateCcw,
   BookOpen,
-  User,
-  Sparkles,
 } from "lucide-react";
 
 export default function TakeCoursePage({
@@ -27,7 +27,7 @@ export default function TakeCoursePage({
 }) {
   const { course } = React.use(params);
   const router = useRouter();
-  const { uid } = useAuth();
+  const { uid, totalPoint, setTotalPoint } = useAuth();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [courseData, setCourseData] = useState<Course | null>(null);
@@ -62,6 +62,9 @@ export default function TakeCoursePage({
     onAddPoints: async (pts) => {
       if (uid) {
         await addPoints(uid, pts);
+        if (typeof totalPoint === "number") {
+          setTotalPoint(totalPoint + pts);
+        }
       }
     },
     onCompleteCourse: async () => {
@@ -73,133 +76,68 @@ export default function TakeCoursePage({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-500 font-semibold">Memuat soal-soal seru...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+        <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-500 text-xs font-bold">Memuat arena kuis berkah...</p>
       </div>
     );
   }
 
   if (questions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center p-6 bg-white rounded-3xl border border-slate-100 shadow-sm max-w-lg mx-auto mt-12">
-        <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
-          <BookOpen className="w-8 h-8" />
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center p-6 bg-white rounded-3xl border-2 border-[#F3E8D6] shadow-xs max-w-sm mx-auto my-8">
+        <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+          <BookOpen className="w-7 h-7" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-800">Belum Ada Soal</h2>
-        <p className="text-slate-500">Materi ini belum memiliki soal latihan. Coba pilih materi lain ya!</p>
-        <button
+        <h2 className="text-xl font-black text-slate-800">Belum Ada Soal Kuis</h2>
+        <p className="text-slate-500 text-xs font-medium">
+          Materi ini belum memiliki soal latihan. Coba pilih materi lain ya!
+        </p>
+        <TactileButton
+          variant="primary"
+          size="md"
           onClick={() => router.push("/dashboard/courses")}
-          className="mt-4 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-md cursor-pointer"
         >
-          Kembali ke Daftar Materi
-        </button>
+          Kembali ke Modul
+        </TactileButton>
       </div>
     );
   }
-
-  // Result Summary View
-  if (quiz.isQuizCompleted) {
-    return (
-      <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-10 px-4 animate-fade-in">
-        <div className="w-full bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
-          {/* Background Glow */}
-          <div className="absolute -top-24 -right-24 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-          {/* Trophy Icon */}
-          <div className="w-24 h-24 bg-gradient-to-tr from-amber-400 to-amber-200 rounded-3xl flex items-center justify-center shadow-lg shadow-amber-200/50 mb-6 animate-bounce">
-            <Trophy className="w-12 h-12 text-amber-900" />
-          </div>
-
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-emerald-50 text-emerald-700 text-sm font-extrabold rounded-full border border-emerald-200 mb-3">
-            <Sparkles className="w-4 h-4" /> Materi Selesai!
-          </span>
-
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-2">
-            Alhamdulillah, Hebat Sekali!
-          </h1>
-          <p className="text-slate-500 font-medium mb-8 max-w-md">
-            Kamu telah menyelesaikan latihan materi <span className="font-bold text-slate-700">{courseData?.title || "ini"}</span> dengan sangat baik!
-          </p>
-
-          {/* Score Card */}
-          <div className="grid grid-cols-3 gap-4 w-full mb-8">
-            <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl flex flex-col items-center">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Nilai</span>
-              <span className="text-2xl md:text-3xl font-extrabold text-indigo-600">{quiz.results.scorePercent}%</span>
-            </div>
-            <div className="p-4 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex flex-col items-center">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Benar</span>
-              <span className="text-2xl md:text-3xl font-extrabold text-emerald-700">{quiz.results.correctCount} / {quiz.totalQuestions}</span>
-            </div>
-            <div className="p-4 bg-amber-50 border border-amber-200/80 rounded-2xl flex flex-col items-center">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Poin Baru</span>
-              <span className="text-2xl md:text-3xl font-extrabold text-amber-700">+{quiz.sessionPoints} ⭐</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <button
-              onClick={quiz.handleRestartQuiz}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all cursor-pointer"
-            >
-              <RotateCcw className="w-5 h-5" /> Ulangi Soal
-            </button>
-            <button
-              onClick={() => router.push("/dashboard/courses")}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all cursor-pointer"
-            >
-              <BookOpen className="w-5 h-5" /> Materi Lain
-            </button>
-            <button
-              onClick={() => router.push("/dashboard/profile")}
-              className="flex items-center justify-center gap-2 py-3.5 px-5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-200 transition-all cursor-pointer"
-            >
-              <User className="w-5 h-5" /> Profil
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!quiz.currentQuestion) return null;
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col gap-6 py-6 px-4">
+    <div className="flex flex-col gap-4 w-full select-none pb-12">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+      <div className="flex items-center justify-between bg-white p-3.5 rounded-2xl border-2 border-[#F3E8D6] shadow-xs">
         <button
+          type="button"
           onClick={() => router.push(`/dashboard/courses/${course}`)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-semibold transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors cursor-pointer"
         >
-          <ChevronLeft className="w-5 h-5" />
-          <span>Kembali ke Detail</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span>Kembali</span>
         </button>
 
-        <h1 className="text-lg md:text-xl font-extrabold text-slate-800 text-center truncate max-w-xs md:max-w-md">
-          {courseData?.title || "Latihan Materi"}
+        <h1 className="text-xs sm:text-sm font-extrabold text-slate-800 text-center truncate max-w-[160px] sm:max-w-xs">
+          {courseData?.title || "Latihan Kuis"}
         </h1>
 
-        <PointBadge />
+        <GoldBadge type="coin" value={totalPoint || 0} size="sm" />
       </div>
 
-      {/* Progress Bubbles */}
-      <div className="flex items-center justify-center gap-2 flex-wrap bg-white p-4 rounded-2xl border border-slate-100">
+      {/* Progress Bubbles Bar */}
+      <div className="flex items-center justify-center gap-1.5 flex-wrap bg-white p-2.5 rounded-2xl border border-[#F3E8D6]">
         {questions.map((_, idx) => {
           const isAnswered = quiz.selectedAnswers[idx] !== undefined;
           const isCorrect = quiz.isCorrectMap[idx];
           const isCurrent = idx === quiz.currentIndex;
 
-          let bubbleStyle = "bg-slate-100 text-slate-500 border-slate-200";
+          let bubbleStyle = "bg-slate-50 text-slate-400 border-slate-200";
           if (isCurrent) {
-            bubbleStyle = "bg-indigo-600 text-white border-indigo-600 ring-4 ring-indigo-100 scale-110";
+            bubbleStyle = "bg-amber-400 text-amber-950 border-b-2 border-amber-600 ring-2 ring-amber-300 scale-105 font-black";
           } else if (isAnswered) {
             bubbleStyle = isCorrect
-              ? "bg-emerald-500 text-white border-emerald-500"
-              : "bg-rose-500 text-white border-rose-500";
+              ? "bg-emerald-600 text-white border-emerald-800"
+              : "bg-rose-500 text-white border-rose-700";
           }
 
           return (
@@ -207,7 +145,7 @@ export default function TakeCoursePage({
               key={idx}
               type="button"
               onClick={() => quiz.setCurrentIndex(idx)}
-              className={`w-9 h-9 rounded-xl font-bold text-sm border flex items-center justify-center transition-all cursor-pointer ${bubbleStyle}`}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl font-extrabold text-xs border flex items-center justify-center transition-all cursor-pointer ${bubbleStyle}`}
             >
               {idx + 1}
             </button>
@@ -216,7 +154,7 @@ export default function TakeCoursePage({
       </div>
 
       {/* Question Card */}
-      <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100">
+      {quiz.currentQuestion && (
         <QuestionCard
           question={quiz.currentQuestion}
           currentIndex={quiz.currentIndex}
@@ -226,46 +164,58 @@ export default function TakeCoursePage({
           isAnswered={quiz.isCurrentAnswered}
           isCorrect={quiz.isCurrentCorrect}
         />
-      </div>
+      )}
 
       {/* Bottom Footer Navigation */}
-      <div className="flex items-center justify-between gap-4 mt-2">
-        <button
-          type="button"
+      <div className="flex items-center justify-between gap-3 mt-1">
+        <TactileButton
+          variant="secondary"
+          size="sm"
           onClick={quiz.handlePrev}
           disabled={quiz.currentIndex === 0}
-          className="flex items-center gap-2 px-6 py-3 font-bold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          <ChevronLeft className="w-5 h-5" /> Sebelumnya
-        </button>
+          <ChevronLeft className="w-4 h-4" />
+          <span>Sebelumnya</span>
+        </TactileButton>
 
         {quiz.isLastQuestion ? (
-          <button
-            type="button"
+          <TactileButton
+            variant="accent"
+            size="md"
             onClick={quiz.handleFinishQuiz}
             disabled={quiz.isSubmitting}
-            className="flex items-center gap-2 px-8 py-3.5 font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 rounded-2xl transition-all cursor-pointer disabled:opacity-50"
           >
             {quiz.isSubmitting ? (
               <span>Menyimpan...</span>
             ) : (
               <>
-                <span>Selesai & Kumpulkan</span>
-                <CheckCircle2 className="w-5 h-5" />
+                <span>Kumpulkan</span>
+                <CheckCircle2 className="w-4 h-4" />
               </>
             )}
-          </button>
+          </TactileButton>
         ) : (
-          <button
-            type="button"
+          <TactileButton
+            variant="primary"
+            size="md"
             onClick={quiz.handleNext}
-            className="flex items-center gap-2 px-6 py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 rounded-2xl transition-all cursor-pointer"
           >
             <span>Selanjutnya</span>
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <ChevronRight className="w-4 h-4" />
+          </TactileButton>
         )}
       </div>
+
+      {/* Score Celebration Modal */}
+      <ScoreCelebration
+        isOpen={quiz.isQuizCompleted}
+        scorePercent={quiz.results.scorePercent}
+        correctCount={quiz.results.correctCount}
+        totalQuestions={quiz.totalQuestions}
+        sessionPoints={quiz.sessionPoints}
+        onRestart={quiz.handleRestartQuiz}
+        onContinue={() => router.push("/dashboard")}
+      />
     </div>
   );
 }

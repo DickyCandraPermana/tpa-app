@@ -1,16 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import RewardItem from "@/components/RewardItem";
-import PointBadge from "@/components/PointBadge";
+import RewardCard from "@/components/features/RewardCard";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import ToastNotification, { ToastType } from "@/components/ui/ToastNotification";
+import TactileCard from "@/components/ui/TactileCard";
+import ArabicText from "@/components/ui/ArabicText";
+import GoldBadge from "@/components/ui/GoldBadge";
 import { useAuth } from "@/context/AuthContext";
 import { getRewards, redeemReward } from "@/lib/services/rewardService";
 import { Reward } from "@/types/schema";
+import { Gift, Sparkles, CheckCircle2 } from "lucide-react";
 
-const ExchangePage = () => {
-  const { totalPoint, setTotalPoint, uid } = useAuth();
+export default function ExchangePage() {
+  const { totalPoint, setTotalPoint, uid, role } = useAuth();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRedeeming, setIsRedeeming] = useState(false);
@@ -33,21 +36,15 @@ const ExchangePage = () => {
     fetchCatalog();
   }, []);
 
-  const handleOpenRedeemModal = (rewardId: string, cost: number) => {
+  const handleOpenRedeemModal = (reward: Reward) => {
     if (!uid) {
       setToast({
-        message: "Silakan login terlebih dahulu untuk menukar hadiah!",
+        message: "Silakan masuk terlebih dahulu untuk menukar hadiah!",
         type: "error",
       });
       return;
     }
-
-    const found = rewards.find((r) => r.id === rewardId) || {
-      id: rewardId,
-      name: "Hadiah Istimewa",
-      pointsRequired: cost,
-    };
-    setSelectedReward(found);
+    setSelectedReward(reward);
   };
 
   const handleConfirmRedeem = async () => {
@@ -62,7 +59,7 @@ const ExchangePage = () => {
       }
       setSelectedReward(null);
       setToast({
-        message: "Alhamdulillah! Hadiah berhasil ditukar. Tunjukkan ke Ustaz/Ustazah ya!",
+        message: "Alhamdulillah! Klaim hadiah berhasil dikirim ke Ustadz!",
         type: "success",
       });
     } else {
@@ -74,34 +71,63 @@ const ExchangePage = () => {
     setIsRedeeming(false);
   };
 
+  const isUstadz = role === "ustadz";
+
   return (
-    <div className="flex flex-col w-full gap-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-800 mb-2">Toko Hadiah 🎁</h1>
-          <p className="text-slate-500 font-medium">Tukarkan poin yang kamu kumpulkan dengan barang seru!</p>
+    <div className="flex flex-col w-full gap-6 select-none pb-12">
+      {/* Header Banner */}
+      <TactileCard className="p-5 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-extrabold text-amber-800">
+            <Gift className="w-3.5 h-3.5 text-amber-600" />
+            <span>Toko Berkah Santri</span>
+          </div>
+          <ArabicText text="جَزَاكُمُ اللَّهُ خَيْرًا" size="sm" className="text-emerald-900" />
         </div>
-        <div className="mt-4 md:mt-0">
-          <PointBadge />
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-1">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">
+              {isUstadz ? "Katalog & Klaim Hadiah Santri" : "Tukar Koin Berkah"}
+            </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              {isUstadz
+                ? "Pantau barang hadiah dan setujui penukaran koin santri binaan"
+                : "Tukarkan koin berkah hasil belajar dengan hadiah pilihanmu!"}
+            </p>
+          </div>
+
+          <div className="self-start sm:self-auto">
+            <GoldBadge type="coin" value={`${totalPoint || 0} Poin`} size="md" />
+          </div>
         </div>
-      </div>
+      </TactileCard>
 
       {/* Rewards Catalog */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-medium">Memuat katalog hadiah seru...</p>
+          <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-500 text-xs font-bold">Memuat katalog hadiah berkah...</p>
+        </div>
+      ) : rewards.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-3xl border-2 border-[#F3E8D6] p-8 shadow-xs">
+          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-3">
+            <Gift className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-black text-slate-800">Katalog Belum Tersedia</h3>
+          <p className="text-slate-500 text-xs font-medium mt-1">
+            Hadiah berkah sedang disiapkan oleh Ustadz dan pengurus TPA.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {rewards.map((reward) => (
-            <RewardItem
+            <RewardCard
               key={reward.id}
-              id={reward.id}
-              name={reward.name}
-              pointsRequired={reward.pointsRequired}
+              reward={reward}
+              userPoints={totalPoint || 0}
               onRedeem={handleOpenRedeemModal}
+              isRedeeming={isRedeeming}
             />
           ))}
         </div>
@@ -127,6 +153,4 @@ const ExchangePage = () => {
       )}
     </div>
   );
-};
-
-export default ExchangePage;
+}

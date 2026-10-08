@@ -2,71 +2,134 @@
 
 import React from "react";
 import Image from "next/image";
-import ProfilePlaceholder from "@/public/assets/profile_picture_placeholder.png";
-
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import PointBadge from "@/components/PointBadge";
-import { BookOpen } from "lucide-react";
+import TactileCard from "@/components/ui/TactileCard";
+import TactileButton from "@/components/ui/TactileButton";
+import GoldBadge from "@/components/ui/GoldBadge";
+import ArabicText from "@/components/ui/ArabicText";
+import { BookOpen, Gift, LogOut, Award, User, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { logoutUser } from "@/lib/auth";
 
-const ProfileOverview = () => {
-  const { username, email, avatarURL } = useAuth();
-  
+export default function ProfilePage() {
+  const { username, email, avatarURL, totalPoint, completedCourse, role, setUid } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      setUid("");
+      router.push("/auth");
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+  };
+
+  const isUstadz = role === "ustadz";
+
   return (
-    <div className="flex flex-col w-full gap-8">
-      <div className="flex flex-col md:flex-row items-center justify-between p-8 bg-indigo-600 rounded-[2rem] shadow-xl shadow-indigo-200 w-full text-white relative overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-amber-400 opacity-20 rounded-full blur-2xl"></div>
-        
-        <div className="flex flex-col md:flex-row items-center gap-6 z-10">
-          <div className="p-1 bg-white rounded-full shadow-md">
+    <div className="flex flex-col w-full gap-6 select-none pb-12">
+      {/* Profile Card Banner */}
+      <TactileCard className="p-6 bg-gradient-to-br from-emerald-800 to-emerald-950 text-white relative overflow-hidden border-emerald-900 shadow-xl">
+        {/* Glow */}
+        <div className="absolute -top-12 -right-12 w-44 h-44 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex items-center justify-between mb-4">
+          <ArabicText text="بَارَكَ اللَّهُ فِيكَ" size="sm" className="text-emerald-200" />
+          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-700/80 text-emerald-100 border border-emerald-600">
+            {isUstadz ? "Ustadz Pembimbing" : "Santri Teladan"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4 z-10">
+          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full p-1 bg-white/20 backdrop-blur-xs relative shrink-0">
             <Image
-              src={avatarURL || ProfilePlaceholder}
+              src={avatarURL || "/assets/profile_picture_placeholder.png"}
               alt="Avatar"
-              width={100}
-              height={100}
-              className="rounded-full border-4 border-white"
+              fill
+              className="rounded-full object-cover border-2 border-white"
             />
           </div>
-          <div className="text-center md:text-left flex flex-col justify-center gap-1">
-            <h1 className="text-3xl md:text-4xl font-extrabold">{username || "Santri Hebat"}</h1>
-            <p className="text-indigo-200 font-medium">{email}</p>
+
+          <div className="flex flex-col justify-center min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black truncate">
+              {username || "Santri Hebat"}
+            </h1>
+            <p className="text-emerald-200 text-xs font-medium truncate">{email}</p>
           </div>
         </div>
-        
-        <div className="mt-6 md:mt-0 z-10">
-          <PointBadge />
+
+        {/* Stats strip */}
+        <div className="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-emerald-700/60">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase text-emerald-300">
+              Koin Berkah
+            </span>
+            <span className="text-lg font-black text-amber-300">
+              {totalPoint || 0} 🪙
+            </span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase text-emerald-300">
+              Modul Selesai
+            </span>
+            <span className="text-lg font-black text-white">
+              {completedCourse?.length || 0} Materi ⭐
+            </span>
+          </div>
         </div>
+      </TactileCard>
+
+      {/* Action Navigation Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Link href="/dashboard/courses">
+          <TactileCard className="p-5 flex items-center gap-4 hover:border-emerald-500/50 transition-all cursor-pointer">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-800">
+                Ruang Modul
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                Buka materi &amp; latihan soal
+              </p>
+            </div>
+          </TactileCard>
+        </Link>
+
+        <Link href="/dashboard/exchange">
+          <TactileCard className="p-5 flex items-center gap-4 hover:border-amber-500/50 transition-all cursor-pointer">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+              <Gift className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-800">
+                Toko Berkah
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">
+                Tukar poin dengan hadiah
+              </p>
+            </div>
+          </TactileCard>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        {/* Quick action: Mulai Belajar */}
-        <Link
-          href="/dashboard/courses"
-          className="flex flex-col items-center justify-center p-8 bg-white border border-slate-100 shadow-sm rounded-3xl hover:shadow-xl hover:-translate-y-1 transition-all group"
+      {/* Logout button */}
+      <div className="pt-2">
+        <TactileButton
+          fullWidth
+          variant="secondary"
+          size="md"
+          onClick={handleLogout}
+          className="text-rose-600 hover:text-rose-700"
         >
-          <div className="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <BookOpen className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-800">Mulai Belajar</h2>
-          <p className="text-slate-500 font-medium text-center mt-2">Pilih materi kuis seru dan kumpulkan poinnya!</p>
-        </Link>
-        
-        {/* Quick action: Tukar Poin */}
-        <Link
-          href="/dashboard/exchange"
-          className="flex flex-col items-center justify-center p-8 bg-white border border-slate-100 shadow-sm rounded-3xl hover:shadow-xl hover:-translate-y-1 transition-all group"
-        >
-          <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <span className="text-3xl">🎁</span>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-800">Tukar Poin</h2>
-          <p className="text-slate-500 font-medium text-center mt-2">Pilih hadiah menarik untuk usahamu!</p>
-        </Link>
+          <LogOut className="w-4 h-4" />
+          <span>Keluar Akun (Logout)</span>
+        </TactileButton>
       </div>
     </div>
   );
-};
-
-export default ProfileOverview;
+}
