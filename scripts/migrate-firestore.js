@@ -115,6 +115,7 @@ async function seedCoursesAndQuestions() {
       description: 'Belajar mengenal 28 huruf hijaiyah, makhraj dasar, dan pelafalan yang fasih.',
       category: 'Tahsin & Hijaiyah',
       level: 'Iqro 1 (Pemula)',
+      imageUrl: 'https://res.cloudinary.com/dogolfub6/image/upload/v1791468936/sibaq/course-hijaiyah-banner.png',
       totalQuestions: 5,
       order: 1,
       questions: [
@@ -176,6 +177,7 @@ async function seedCoursesAndQuestions() {
       description: 'Mengenal harakat fathah, kasrah, dhammah, sukun, tanwin, dan tasydid.',
       category: 'Tahsin & Hijaiyah',
       level: 'Iqro 2 (Dasar)',
+      imageUrl: 'https://res.cloudinary.com/dogolfub6/image/upload/c_fill,w_1000,h_560,e_tint:15:004020/v1791468936/sibaq/course-hijaiyah-banner.png',
       totalQuestions: 5,
       order: 2,
       questions: [
@@ -237,6 +239,7 @@ async function seedCoursesAndQuestions() {
       description: 'Mempelajari panjang bacaan Mad Thabi\'i dan sifat pantulan huruf Qalqalah.',
       category: 'Kaidah Tajwid',
       level: 'Al-Qur\'an (Menengah)',
+      imageUrl: 'https://res.cloudinary.com/dogolfub6/image/upload/c_fill,w_1000,h_560,e_tint:20:201000/v1791469040/sibaq/course-nun-sukun-banner.jpg',
       totalQuestions: 5,
       order: 3,
       questions: [
@@ -287,6 +290,130 @@ async function seedCoursesAndQuestions() {
           correctAnswer: 'Memantul / bergetar',
           transliteration: 'Memantul',
           arabicText: 'قَلْقَلَة',
+          points: 10,
+          type: 'multiple_choice'
+        }
+      ]
+    },
+    {
+      id: 'hukum-nun-sukun',
+      title: 'Hukum Nun Sukun & Tanwin',
+      description: 'Memahami kaidah Izhar Halqi, Idgham Bighunnah, Idgham Bilaghunnah, Iqlab, dan Ikhfa Haqiqi.',
+      category: 'Kaidah Tajwid',
+      level: 'Al-Qur\'an (Lanjutan)',
+      imageUrl: 'https://res.cloudinary.com/dogolfub6/image/upload/v1791469040/sibaq/course-nun-sukun-banner.jpg',
+      totalQuestions: 5,
+      order: 4,
+      questions: [
+        {
+          id: 'q_nun_1',
+          prompt: 'Nun Sukun (نْ) atau Tanwin bertemu huruf Alif (ء), Ha (هـ), \'Ain (ع), Ghain (غ), Ha (ح), Kha (خ) dibaca jelas tanpa dengung disebut?',
+          options: ['Izhar Halqi', 'Idgham Bighunnah', 'Ikhfa Haqiqi', 'Iqlab'],
+          correctAnswer: 'Izhar Halqi',
+          transliteration: 'Izhar Halqi',
+          arabicText: 'إِظْهَار حَلْقِي',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_nun_2',
+          prompt: 'Berapakah jumlah huruf Idgham Bighunnah (ي, ن, م, و)?',
+          options: ['4 Huruf', '6 Huruf', '2 Huruf', '15 Huruf'],
+          correctAnswer: '4 Huruf',
+          transliteration: '4 Huruf (Yanmu)',
+          arabicText: '٤ حروف (ي ن م و)',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_nun_3',
+          prompt: 'Huruf apakah yang termasuk dalam hukum Idgham Bilaghunnah (lebur tanpa dengung)?',
+          options: ['Lam (ل) dan Ra (ر)', 'Wawu (و) dan Ya (ي)', 'Nun (ن) dan Mim (م)', 'Kaf (ك) dan Qaf (ق)'],
+          correctAnswer: 'Lam (ل) dan Ra (ر)',
+          transliteration: 'Lam & Ra',
+          arabicText: 'ل - ر',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_nun_4',
+          prompt: 'Ikhfa Haqiqi artinya menyamarkan bacaan antara Izhar dan Idgham disertai dengung. Berapakah jumlah huruf Ikhfa?',
+          options: ['15 Huruf', '6 Huruf', '4 Huruf', '8 Huruf'],
+          correctAnswer: '15 Huruf',
+          transliteration: '15 Huruf',
+          arabicText: '١٥ حرفاً',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_nun_5',
+          prompt: 'Contoh bacaan Iqlab pada lafaz \'مِنْ بَعْدِ\' ditandai dengan perubahan suara huruf Nun Sukun menjadi bunyi?',
+          options: ['Mim (م)', 'Wawu (و)', 'Sin (س)', 'Nun tebal (ن)'],
+          correctAnswer: 'Mim (م)',
+          transliteration: 'Mim (M)',
+          arabicText: 'م',
+          points: 10,
+          type: 'multiple_choice'
+        }
+      ]
+    },
+    {
+      id: 'adab-dan-doa-harian',
+      title: 'Adab Santri & Doa Harian',
+      description: 'Mempelajari adab mulia menuntut ilmu, adab tilawah Al-Qur\'an, serta hafalan doa harian penuntun santri.',
+      category: 'Adab & Akhlak',
+      level: 'Semua Tingkat',
+      imageUrl: 'https://res.cloudinary.com/dogolfub6/image/upload/v1791469066/sibaq/course-adab-doa-banner.png',
+      totalQuestions: 5,
+      order: 5,
+      questions: [
+        {
+          id: 'q_adab_1',
+          prompt: 'Sebelum mulai mengaji dan menyentuh mushaf Al-Qur\'an, santri disunnahkan untuk?',
+          options: ['Berwudhu & suci dari hadats', 'Makan kenyang', 'Berlari-lari', 'Memakai sepatu'],
+          correctAnswer: 'Berwudhu & suci dari hadats',
+          transliteration: 'Berwudhu',
+          arabicText: 'وُضُوء',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_adab_2',
+          prompt: "Lafaz doa sebelum belajar: 'Rabbi zidnii 'ilman wa...?'",
+          options: ['warzuqnii fahmaa', 'warhamhumaa kamaa rabbayaanii', 'wa baarik lanaa fiimaa razaqtanaa', 'wa qinaa \'adzaaban naar'],
+          correctAnswer: 'warzuqnii fahmaa',
+          transliteration: "warzuqnii fahmaa",
+          arabicText: 'رَبِّ زِدْنِي عِلْمًا وَارْزُقْنِي فَهْمًا',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_adab_3',
+          prompt: 'Sikap santri yang beradab ketika Ustadz atau Ustazah sedang menerangkan materi adalah?',
+          options: ['Duduk tertib dan menyimak dengan seksama', 'Bermain gawai / HP', 'Mengobrol dengan teman sebelah', 'Tidur di meja'],
+          correctAnswer: 'Duduk tertib dan menyimak dengan seksama',
+          transliteration: 'Tawadhu & Khusyuk',
+          arabicText: 'أَدَبُ الْمَجْلِسِ',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_adab_4',
+          prompt: "Kelanjutan doa untuk kedua orang tua: 'Rabbighfir lii wa liwaalidayya warhamhumaa kamaa...?'",
+          options: ['rabbayaanii shaghiiraa', 'khalaqtani musliman', 'razaqtani katsiiraa', 'a\'thaytani na\'iimaa'],
+          correctAnswer: 'rabbayaanii shaghiiraa',
+          transliteration: 'rabbayaanii shaghiiraa',
+          arabicText: 'رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا',
+          points: 10,
+          type: 'multiple_choice'
+        },
+        {
+          id: 'q_adab_5',
+          prompt: "Doa penutup majelis: 'Subhaanakallaahumma wa bihamdika, asyhadu allaa ilaaha illaa Anta, astaghfiruka wa...?'",
+          options: ['atuubu ilaik', 'rahmatuka wasi\'at', 'adkhilnal jannah', 'taqabbal minnaa'],
+          correctAnswer: 'atuubu ilaik',
+          transliteration: 'atuubu ilaik',
+          arabicText: 'أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ',
           points: 10,
           type: 'multiple_choice'
         }
