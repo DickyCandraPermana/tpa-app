@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
 @theme {
+  --color-canvas-ivory: #FDFBF7;
+  --color-sand-border: #F3E8D6;
+
+  --color-emerald-deep: #064E3B;
+  --color-emerald-main: #047857;
+  --color-emerald-light: #10B981;
+  --color-emerald-tint: #ECFDF5;
+
+  --color-gold-star: #F59E0B;
+  --color-gold-shade: #D97706;
+  --color-gold-glow: #FEF3C7;
+
+  --font-amiri: var(--font-amiri);
+  --font-nunito: var(--font-nunito);
+
   --animate-pop: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   
   @keyframes pop {
@@ -17,5 +32,12 @@
 }
 
 body {
-  @apply antialiased;
+  background-color: #FDFBF7;
+  color: #1e293b;
+  font-family: var(--font-nunito), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-amiri {
+  font-family: var(--font-amiri), "Scheherazade New", serif;
 }
