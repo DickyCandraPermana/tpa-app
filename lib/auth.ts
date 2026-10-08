@@ -2,6 +2,7 @@ import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
@@ -66,3 +67,13 @@ export async function loginUser(email: string, password: string) {
     return { success: false, message: err.message };
   }
 }
+
+export async function logoutUser() {
+  try {
+    await signOut(auth);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, message: err.message };
+  }
+}
+
