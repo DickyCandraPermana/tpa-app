@@ -18,7 +18,7 @@ export default function TactileCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-3xl border border-[#F3E8D6] shadow-sm p-6 ${
+      className={`bg-white dark:bg-[#000000] text-slate-800 dark:text-neutral-100 rounded-3xl border border-[#F3E8D6] dark:border-neutral-800 shadow-sm dark:shadow-none p-6 ${
         hoverEffect
           ? "hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
           : ""

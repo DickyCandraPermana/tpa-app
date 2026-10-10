@@ -19,7 +19,7 @@ export default function AdaptiveTopBar({
   const isUstaz = role === "ustaz" || role === "admin";
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FDFBF7]/90 backdrop-blur-md px-4 py-3 border-b border-[#F3E8D6]/60 flex items-center justify-between select-none">
+    <header className="sticky top-0 z-40 bg-[#FDFBF7]/90 dark:bg-[#000000]/95 backdrop-blur-md px-4 py-3 border-b border-[#F3E8D6]/60 dark:border-neutral-800 flex items-center justify-between select-none">
       {isUstaz ? (
         // Ustadz Top Bar
         <>

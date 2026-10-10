@@ -7,9 +7,14 @@ export const UserRoleSchema = z.preprocess((val) => {
 }, z.enum(["santri", "ustaz", "admin"]).default("santri"));
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
+export const ThemeModeSchema = z.enum(["light", "oled", "system"]).default("light");
+export type ThemeMode = z.infer<typeof ThemeModeSchema>;
+
 export const UserSettingsSchema = z.object({
   soundEnabled: z.boolean().default(true),
   notificationEnabled: z.boolean().default(true),
+  darkMode: z.boolean().default(false),
+  theme: ThemeModeSchema.default("light"),
 });
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
 

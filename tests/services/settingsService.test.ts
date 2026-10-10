@@ -5,6 +5,7 @@ import {
   saveLocalSettings,
   fetchRemoteSettings,
   persistSettings,
+  applyThemeToDOM,
 } from "@/lib/services/settingsService";
 import { getDoc, updateDoc } from "firebase/firestore";
 
@@ -82,7 +83,10 @@ describe("settingsService", () => {
     expect(updateDoc).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        settings: { soundEnabled: false, notificationEnabled: true },
+        settings: expect.objectContaining({
+          soundEnabled: false,
+          notificationEnabled: true,
+        }),
       })
     );
   });
@@ -91,5 +95,25 @@ describe("settingsService", () => {
     const updated = await persistSettings(null, { notificationEnabled: false });
     expect(updated.notificationEnabled).toBe(false);
     expect(updateDoc).not.toHaveBeenCalled();
+  });
+
+  it("handles darkMode and theme defaults correctly", () => {
+    const settings = getLocalSettings();
+    expect(settings.darkMode).toBe(false);
+    expect(settings.theme).toBe("light");
+  });
+
+  it("applyThemeToDOM adds data-theme and dark class for oled mode", () => {
+    applyThemeToDOM(true);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("oled");
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+
+    applyThemeToDOM(false);
+    expect(document.documentElement.getAttribute("data-theme")).toBeNull();
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+
+    applyThemeToDOM("oled");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("oled");
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 });

@@ -49,7 +49,7 @@ export default function AdaptiveBottomNav({
   const navItems = isUstaz ? ustazNav : santriNav;
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-md w-full z-40 bg-white/95 backdrop-blur-md border-t border-[#F3E8D6] rounded-t-3xl shadow-lg px-2 py-2 flex items-center justify-around">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-md md:max-w-lg lg:max-w-xl w-full z-40 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md border-t border-[#F3E8D6] dark:border-neutral-800 rounded-t-3xl shadow-lg dark:shadow-none px-2 py-2 flex items-center justify-around transition-colors duration-150">
       {navItems.map((item, idx) => {
         const Icon = item.icon;
         const isActive =
@@ -62,13 +62,13 @@ export default function AdaptiveBottomNav({
             href={item.href}
             className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all ${
               isActive
-                ? "text-emerald-700 font-extrabold scale-105"
-                : "text-slate-400 hover:text-slate-600 font-semibold"
+                ? "text-emerald-700 dark:text-emerald-400 font-extrabold scale-105"
+                : "text-slate-400 dark:text-neutral-500 hover:text-slate-600 dark:hover:text-neutral-300 font-semibold"
             }`}
           >
             <div
               className={`p-1.5 rounded-xl transition-colors ${
-                isActive ? "bg-emerald-50 text-emerald-700" : ""
+                isActive ? "bg-emerald-50 dark:bg-neutral-900 border border-transparent dark:border-neutral-800 text-emerald-700 dark:text-emerald-400" : ""
               }`}
             >
               <Icon className="w-5 h-5" />

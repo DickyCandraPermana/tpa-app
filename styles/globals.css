@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4 dark variant via data-theme="oled" or .dark class */
+@custom-variant dark (&:where([data-theme="oled"], [data-theme="oled"] *, .dark, .dark *));
+
 @theme {
   --color-canvas-ivory: #FDFBF7;
   --color-sand-border: #F3E8D6;
@@ -12,6 +15,11 @@
   --color-gold-star: #F59E0B;
   --color-gold-shade: #D97706;
   --color-gold-glow: #FEF3C7;
+
+  /* True OLED Black & Minimalist Surface Tokens */
+  --color-oled-black: #000000;
+  --color-oled-card: #09090B;
+  --color-oled-border: #27272A;
 
   --font-amiri: var(--font-amiri);
   --font-nunito: var(--font-nunito);
@@ -36,6 +44,11 @@ body {
   color: #1e293b;
   font-family: var(--font-nunito), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+:where([data-theme="oled"], .dark) body {
+  background-color: #000000;
+  color: #F8FAFC;
 }
 
 .font-amiri {
