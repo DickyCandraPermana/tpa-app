@@ -20,7 +20,10 @@ const amiri = Amiri({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#064E3B",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#064E3B" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -43,8 +46,37 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="id" className={`${nunito.variable} ${amiri.variable}`}>
-      <body className="bg-[#FDFBF7] text-slate-800 min-h-screen antialiased">
+    <html
+      lang="id"
+      suppressHydrationWarning
+      className={`${nunito.variable} ${amiri.variable}`}
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var raw = localStorage.getItem('sibaq_user_settings');
+                  var isDark = false;
+                  if (raw) {
+                    var s = JSON.parse(raw);
+                    isDark = s.darkMode === true || s.theme === 'oled' || (s.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  }
+                  if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'oled');
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-[#FDFBF7] dark:bg-[#000000] text-slate-800 dark:text-neutral-100 min-h-screen antialiased">
         <ServiceWorkerRegister />
         <AuthProvider>
           <UserProgressProvider>{children}</UserProgressProvider>

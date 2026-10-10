@@ -31,9 +31,9 @@ export default function CourseCard({ course }: { course: any }) {
   const isCompleted = completedCourse?.includes(course.id);
 
   return (
-    <TactileCard className="group flex flex-col overflow-hidden bg-white hover:border-emerald-500/50 transition-all">
-      {/* Cover image */}
-      <div className="relative h-40 w-full bg-emerald-50/50 overflow-hidden border-b border-[#F3E8D6]">
+    <TactileCard className="group flex flex-col overflow-hidden bg-white dark:bg-[#000000] hover:border-emerald-500/50 transition-all">
+      {/* Cover / Placeholder Art */}
+      <div className="relative h-40 w-full bg-emerald-50/50 dark:bg-neutral-900 overflow-hidden border-b border-[#F3E8D6] dark:border-neutral-800">
         <Image
           src={imageUrl}
           alt={course.title}

@@ -16,12 +16,15 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/lib/services/settingsService", () => ({
-  getLocalSettings: vi.fn(() => ({ soundEnabled: true, notificationEnabled: true })),
-  fetchRemoteSettings: vi.fn(async () => ({ soundEnabled: true, notificationEnabled: true })),
+  getLocalSettings: vi.fn(() => ({ soundEnabled: true, notificationEnabled: true, darkMode: false, theme: "light" })),
+  fetchRemoteSettings: vi.fn(async () => ({ soundEnabled: true, notificationEnabled: true, darkMode: false, theme: "light" })),
   persistSettings: vi.fn(async (_uid, updates) => ({
     soundEnabled: updates.soundEnabled ?? true,
     notificationEnabled: updates.notificationEnabled ?? true,
+    darkMode: updates.darkMode ?? false,
+    theme: updates.theme ?? "light",
   })),
+  applyThemeToDOM: vi.fn(),
 }));
 
 describe("SettingsPage Component", () => {

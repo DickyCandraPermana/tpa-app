@@ -236,7 +236,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredSantri.length > 0 ? (
               filteredSantri.map((santri) => (
                 <SantriProgressCard
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                 />
               ))
             ) : (
-              <div className="p-8 text-center bg-white rounded-2xl border border-slate-100 text-xs text-slate-400">
+              <div className="p-8 text-center bg-white dark:bg-[#000000] rounded-2xl border border-slate-100 dark:border-neutral-800 text-xs text-slate-400 dark:text-neutral-400">
                 Tidak ada santri yang cocok dengan pencarian &ldquo;{searchQuery}&rdquo;.
               </div>
             )}

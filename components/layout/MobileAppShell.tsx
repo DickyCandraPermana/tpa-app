@@ -19,17 +19,11 @@ export default function MobileAppShell({
   const { role } = useAuth();
 
   return (
-    <div className="min-h-screen w-full bg-[#FDFBF7] flex justify-center items-start antialiased text-slate-800">
-      {/* Decorative desktop backdrop glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden hidden md:block opacity-30 z-0">
-        <div className="absolute top-10 left-10 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-200/40 rounded-full blur-3xl" />
-      </div>
-
-      {/* Centered Mobile Container */}
-      <div className="w-full max-w-md min-h-screen bg-[#FDFBF7] md:border-x md:border-[#F3E8D6] md:shadow-xl relative flex flex-col z-10 pb-24">
+    <div className="min-h-screen w-full bg-[#FDFBF7] dark:bg-[#000000] flex justify-center items-start antialiased text-slate-800 dark:text-neutral-100 transition-colors duration-150">
+      {/* Responsive Container (Mobile-First: max-w-md on mobile, expanding to max-w-4xl on tablet and max-w-5xl on desktop) */}
+      <div className="w-full max-w-md md:max-w-4xl lg:max-w-5xl min-h-screen bg-[#FDFBF7] dark:bg-[#000000] md:border-x md:border-[#F3E8D6] dark:md:border-neutral-800 relative flex flex-col z-10 pb-24">
         {showTopBar && <AdaptiveTopBar />}
-        <main className="flex-1 w-full px-4 py-4">{children}</main>
+        <main className="flex-1 w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6">{children}</main>
         {showBottomNav && <AdaptiveBottomNav role={role} />}
       </div>
     </div>
