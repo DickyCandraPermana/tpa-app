@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import DashboardPage from "@/app/dashboard/page";
 import * as halaqahService from "@/lib/services/halaqahService";
 import * as rewardService from "@/lib/services/rewardService";
@@ -32,6 +32,10 @@ vi.mock("@/lib/courses", () => ({
 describe("DashboardPage Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("renders ustadz halaqah monitoring and allows recording setoran", async () => {
@@ -131,5 +135,53 @@ describe("DashboardPage Component", () => {
       expect(screen.getByText(/Peta Petualangan Mengaji/i)).toBeDefined();
       expect(screen.getByText(/45 🪙/i)).toBeDefined();
     });
+  });
+
+  it("filters halaqah santri list based on search query", async () => {
+    mockUseAuth.mockReturnValue({
+      uid: "ustadz-123",
+      username: "Ustadz Ahmad",
+      role: "ustaz",
+      totalPoint: 0,
+      completedCourse: [],
+    });
+
+    vi.mocked(halaqahService.getHalaqahSantriList).mockResolvedValue([
+      {
+        id: "s-1",
+        name: "Muhammad Faris",
+        jilid: "Jilid 2",
+        page: 18,
+        totalPages: 30,
+        completed: 18,
+      },
+      {
+        id: "s-2",
+        name: "Aisyah Humaira",
+        jilid: "Jilid 4",
+        page: 5,
+        totalPages: 30,
+        completed: 5,
+      },
+    ]);
+
+    vi.mocked(rewardService.getPendingRedeemRequests).mockResolvedValue([]);
+    vi.mocked(coursesModule.getCourses).mockResolvedValue([]);
+
+    render(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Muhammad Faris" })).toBeDefined();
+      expect(screen.getByRole("heading", { name: "Aisyah Humaira" })).toBeDefined();
+    });
+
+    const searchInput = screen.getByPlaceholderText(/Cari nama atau jilid/i);
+    fireEvent.change(searchInput, { target: { value: "Aisyah" } });
+
+    expect(screen.getByRole("heading", { name: "Aisyah Humaira" })).toBeDefined();
+    expect(screen.queryByRole("heading", { name: "Muhammad Faris" })).toBeNull();
+
+    fireEvent.change(searchInput, { target: { value: "ZzzUnknown" } });
+    expect(screen.getByText(/Tidak ada santri yang cocok/i)).toBeDefined();
   });
 });

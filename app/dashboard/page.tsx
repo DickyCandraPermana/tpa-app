@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Users,
   Compass,
+  Search,
 } from "lucide-react";
 
 interface PathNode {
@@ -88,6 +89,7 @@ export default function DashboardPage() {
     useState<SantriProgressItem | null>(null);
   const [isSetoranModalOpen, setIsSetoranModalOpen] = useState(false);
   const [ustadzNotice, setUstadzNotice] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const isUstadz = role === "ustadz" || role === "ustaz" || role === "admin";
 
@@ -141,6 +143,12 @@ export default function DashboardPage() {
       `Alhamdulillah! Setoran ${updatedSantri.name} (${updatedSantri.jilid} hal ${updatedSantri.page}) berhasil dicatat (+${bonusCoin} Koin Berkah).`
     );
   };
+
+  const filteredSantri = santriList.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.jilid.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (isUstadz) {
     return (
@@ -211,23 +219,41 @@ export default function DashboardPage() {
 
         {/* Daftar Santri Progres */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-            <Compass className="w-4 h-4 text-emerald-600" />
-            <span>Pemantauan Progres Santri</span>
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h2 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <Compass className="w-4 h-4 text-emerald-600" />
+              <span>Pemantauan Progres Santri</span>
+            </h2>
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Cari nama atau jilid..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full sm:w-60 pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              />
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-3">
-            {santriList.map((santri) => (
-              <SantriProgressCard
-                key={santri.id}
-                santriName={santri.name}
-                jilid={santri.jilid}
-                page={santri.page}
-                totalPages={santri.totalPages}
-                completedCount={santri.completed}
-                onUpdateProgress={() => handleOpenSetoran(santri)}
-              />
-            ))}
+            {filteredSantri.length > 0 ? (
+              filteredSantri.map((santri) => (
+                <SantriProgressCard
+                  key={santri.id}
+                  santriName={santri.name}
+                  jilid={santri.jilid}
+                  page={santri.page}
+                  totalPages={santri.totalPages}
+                  completedCount={santri.completed}
+                  onUpdateProgress={() => handleOpenSetoran(santri)}
+                />
+              ))
+            ) : (
+              <div className="p-8 text-center bg-white rounded-2xl border border-slate-100 text-xs text-slate-400">
+                Tidak ada santri yang cocok dengan pencarian &ldquo;{searchQuery}&rdquo;.
+              </div>
+            )}
           </div>
         </div>
 
@@ -250,7 +276,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 w-full select-none pb-12">
       {/* Hero Greetings Card */}
-      <TactileCard className="p-5 bg-gradient-to-br from-emerald-50 via-white to-amber-50/40 relative overflow-hidden">
+      <TactileCard className="p-5 bg-white border border-[#F3E8D6] relative overflow-hidden">
         <div className="flex items-center justify-between mb-3">
           <ArabicText
             text="أَهْلًا بِكَ"
