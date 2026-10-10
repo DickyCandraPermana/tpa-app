@@ -71,20 +71,41 @@ export const redeemReward = async (
   }
 
   try {
-    const docRef = await addDoc(collection(db, "redeem_requests"), {
-      userId,
-      userName,
-      rewardId: reward.id,
-      rewardName: reward.name,
-      pointsRequired: reward.pointsRequired,
-      cost: reward.pointsRequired,
-      status: "PENDING",
-      createdAt: serverTimestamp(),
-      timestamp: new Date(),
-    });
+    let reqDocId = "";
+    let finalRemainingPoints = check.remainingPoints;
 
-    await updateDoc(doc(db, "users", userId), {
-      totalPoint: increment(-reward.pointsRequired),
+    await runTransaction(db, async (tx) => {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await tx.get(userRef);
+
+      const currentPoints = userSnap.exists()
+        ? (userSnap.data()?.totalPoint ?? userPoints)
+        : userPoints;
+
+      if (currentPoints < reward.pointsRequired) {
+        throw new Error("Poin tidak mencukupi untuk menukar hadiah ini.");
+      }
+
+      finalRemainingPoints = currentPoints - reward.pointsRequired;
+
+      const reqRef = doc(collection(db, "redeem_requests"));
+      reqDocId = reqRef.id;
+
+      tx.set(reqRef, {
+        userId,
+        userName,
+        rewardId: reward.id,
+        rewardName: reward.name,
+        pointsRequired: reward.pointsRequired,
+        cost: reward.pointsRequired,
+        status: "PENDING",
+        createdAt: serverTimestamp(),
+        timestamp: new Date(),
+      });
+
+      tx.update(userRef, {
+        totalPoint: increment(-reward.pointsRequired),
+      });
     });
 
     await recordCoinTransaction(
@@ -92,13 +113,13 @@ export const redeemReward = async (
       -reward.pointsRequired,
       "SPENT",
       "REWARD_REDEEM",
-      docRef.id || reward.id,
+      reqDocId || reward.id,
       `Penukaran hadiah: ${reward.name}`
     );
 
     return {
       success: true,
-      newPoints: check.remainingPoints,
+      newPoints: finalRemainingPoints,
     };
   } catch (error: any) {
     console.error("Firestore error while redeeming reward:", error);
