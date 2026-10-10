@@ -7,6 +7,12 @@ export const UserRoleSchema = z.preprocess((val) => {
 }, z.enum(["santri", "ustaz", "admin"]).default("santri"));
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
+export const UserSettingsSchema = z.object({
+  soundEnabled: z.boolean().default(true),
+  notificationEnabled: z.boolean().default(true),
+});
+export type UserSettings = z.infer<typeof UserSettingsSchema>;
+
 export const UserProfileSchema = z.object({
   uid: z.string(),
   email: z.string().nullable().optional(),
@@ -16,6 +22,7 @@ export const UserProfileSchema = z.object({
   totalPoint: z.number().int().nonnegative().default(0),
   completedCourse: z.array(z.string()).default([]),
   halaqahId: z.string().optional(),
+  settings: UserSettingsSchema.optional(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 

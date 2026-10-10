@@ -53,8 +53,8 @@ export default function ScoreCelebration({
         <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-emerald-300/20 rounded-full blur-2xl" />
 
         {/* Trophy icon */}
-        <div className="w-20 h-20 bg-gradient-to-tr from-amber-400 to-amber-200 rounded-3xl flex items-center justify-center shadow-lg shadow-amber-200/50 mb-4 animate-bounce">
-          <Trophy className="w-10 h-10 text-amber-900" />
+        <div className="w-20 h-20 bg-amber-100 border-2 border-amber-300 rounded-3xl flex items-center justify-center shadow-xs mb-4 animate-bounce">
+          <Trophy className="w-10 h-10 text-amber-800" />
         </div>
 
         {/* Stars */}

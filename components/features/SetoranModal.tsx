@@ -106,7 +106,7 @@ export default function SetoranModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none animate-fadeIn">
       <div className="w-full max-w-md bg-white rounded-3xl border-2 border-[#F3E8D6] shadow-xl overflow-hidden">
         {/* Modal Header */}
-        <div className="p-5 bg-gradient-to-r from-emerald-700 to-emerald-800 text-white flex items-center justify-between">
+        <div className="p-5 bg-emerald-800 border-b border-emerald-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-white/15 flex items-center justify-center text-white">
               <BookOpen className="w-5 h-5" />
