@@ -39,7 +39,7 @@ export default function ConfirmModal({
         </button>
 
         {/* Gift Badge */}
-        <div className="w-20 h-20 bg-gradient-to-tr from-amber-400 to-amber-200 rounded-3xl flex items-center justify-center shadow-lg shadow-amber-200/50 mb-5">
+        <div className="w-20 h-20 bg-amber-100 border-2 border-amber-300 rounded-3xl flex items-center justify-center shadow-sm mb-5 text-amber-700">
           <Gift className="w-10 h-10 text-amber-900" />
         </div>
 

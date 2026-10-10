@@ -122,7 +122,7 @@ export default function LeaderboardPage() {
                     <GoldBadge type="coin" value={secondPlace.totalPoint} size="sm" />
                   </div>
                   {/* Podium Base #2 */}
-                  <div className="w-full h-24 bg-gradient-to-t from-slate-200 to-slate-100 border-2 border-slate-300 rounded-t-2xl mt-2 flex flex-col items-center justify-center shadow-inner">
+                  <div className="w-full h-24 bg-slate-100 border-2 border-slate-300 rounded-t-2xl mt-2 flex flex-col items-center justify-center shadow-inner">
                     <span className="text-2xl font-black text-slate-400">2</span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Perak</span>
                   </div>
@@ -159,7 +159,7 @@ export default function LeaderboardPage() {
                     <GoldBadge type="coin" value={firstPlace.totalPoint} size="sm" />
                   </div>
                   {/* Podium Base #1 */}
-                  <div className="w-full h-32 bg-gradient-to-t from-amber-200 to-amber-100 border-2 border-amber-300 rounded-t-2xl mt-2 flex flex-col items-center justify-center shadow-inner">
+                  <div className="w-full h-32 bg-amber-100 border-2 border-amber-300 rounded-t-2xl mt-2 flex flex-col items-center justify-center shadow-inner">
                     <Trophy className="w-6 h-6 text-amber-600 mb-0.5" />
                     <span className="text-2xl font-black text-amber-600">1</span>
                     <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Juara 1</span>
@@ -196,7 +196,7 @@ export default function LeaderboardPage() {
                     <GoldBadge type="coin" value={thirdPlace.totalPoint} size="sm" />
                   </div>
                   {/* Podium Base #3 */}
-                  <div className="w-full h-20 bg-gradient-to-t from-amber-100 to-orange-50 border-2 border-amber-700/30 rounded-t-2xl mt-2 flex flex-col items-center justify-center shadow-inner">
+                  <div className="w-full h-20 bg-amber-50 border-2 border-amber-700/30 rounded-t-2xl mt-2 flex flex-col items-center justify-center shadow-inner">
                     <span className="text-2xl font-black text-amber-800">3</span>
                     <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Perunggu</span>
                   </div>

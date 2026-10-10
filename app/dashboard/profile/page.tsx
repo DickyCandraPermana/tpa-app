@@ -35,10 +35,7 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col w-full gap-6 select-none pb-12">
       {/* Profile Card Banner */}
-      <TactileCard className="p-6 bg-gradient-to-br from-emerald-800 to-emerald-950 text-white relative overflow-hidden border-emerald-900 shadow-xl">
-        {/* Glow */}
-        <div className="absolute -top-12 -right-12 w-44 h-44 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
-
+      <TactileCard className="p-6 bg-emerald-900 text-white relative overflow-hidden border border-emerald-800 shadow-md">
         <div className="flex items-center justify-between mb-4">
           <ArabicText text="بَارَكَ اللَّهُ فِيكَ" size="sm" className="text-emerald-200" />
           <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-700/80 text-emerald-100 border border-emerald-600">
