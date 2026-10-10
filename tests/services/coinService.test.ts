@@ -33,7 +33,7 @@ describe("Coin Service", () => {
         "user-123",
         50,
         "EARNED",
-        "QUIZ_COMPLETION",
+        "QUIZ",
         "quiz-456",
         "Completed Quran Quiz"
       );
@@ -41,7 +41,7 @@ describe("Coin Service", () => {
       expect(payload.userId).toBe("user-123");
       expect(payload.amount).toBe(50);
       expect(payload.type).toBe("EARNED");
-      expect(payload.source).toBe("QUIZ_COMPLETION");
+      expect(payload.source).toBe("QUIZ");
       expect(payload.referenceId).toBe("quiz-456");
       expect(payload.description).toBe("Completed Quran Quiz");
       expect(payload.createdAt).toBeDefined();
@@ -52,7 +52,7 @@ describe("Coin Service", () => {
         "user-999",
         10,
         "SPENT",
-        "REWARD_REDEMPTION"
+        "REWARD_REDEEM"
       );
 
       expect(payload.description).toBe("");
@@ -69,7 +69,7 @@ describe("Coin Service", () => {
         "user-123",
         25,
         "EARNED",
-        "DAILY_LOGIN",
+        "DAILY_BONUS",
         undefined,
         "Daily streak bonus"
       );
@@ -87,7 +87,7 @@ describe("Coin Service", () => {
         "user-123",
         25,
         "EARNED",
-        "DAILY_LOGIN"
+        "DAILY_BONUS"
       );
 
       expect(result.success).toBe(false);
