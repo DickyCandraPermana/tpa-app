@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isUstadzOrAdmin() {
+      return isAuthenticated() && (
+        getUserData().role == 'ustadz' ||
+        getUserData().role == 'ustaz' ||
+        getUserData().role == 'admin'
+      );
+    }
+
+    // 1. User Profiles & Progress
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isUstadzOrAdmin();
+      allow delete: if isUstadzOrAdmin();
+    }
+
+    // 2. Coin Transactions (Immutable Ledger)
+    match /coin_transactions/{txId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isUstadzOrAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Ledger is append-only
+    }
+
+    // 3. Setoran Logs (Mengaji History)
+    match /setoran_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        resource.data.santriId == request.auth.uid || isUstadzOrAdmin()
+      );
+      allow create: if isUstadzOrAdmin();
+      allow update, delete: if isUstadzOrAdmin();
+    }
+
+    // 4. Reward Redemption Requests
+    match /redeem_requests/{requestId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isUstadzOrAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isUstadzOrAdmin();
+      allow delete: if isUstadzOrAdmin();
+    }
+
+    // 5. Rewards Catalog
+    match /rewards/{rewardId} {
+      allow read: if isAuthenticated();
+      allow write: if isUstadzOrAdmin();
+    }
+
+    // 6. Courses & Question Bank
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow write: if isUstadzOrAdmin();
+
+      match /questions/{questionId} {
+        allow read: if isAuthenticated();
+        allow write: if isUstadzOrAdmin();
+      }
+    }
+
+    // 7. Quiz Attempts
+    match /quiz_attempts/{attemptId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isUstadzOrAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // 8. Halaqah Groups
+    match /halaqah/{halaqahId} {
+      allow read: if isAuthenticated();
+      allow write: if isUstadzOrAdmin();
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { recordCoinTransaction } from "@/lib/services/coinService";
 import {
   getHalaqahSantriList,
   recordSantriSetoran,
+  getSantriSetoranLogs,
 } from "@/lib/services/halaqahService";
 
 vi.mock("firebase/firestore", () => {
@@ -78,5 +79,73 @@ describe("Halaqah Service", () => {
       "setoran-123",
       expect.stringContaining("Jilid 3")
     );
+  });
+
+  describe("getSantriSetoranLogs", () => {
+    it("fetches ordered setoran logs for a santri", async () => {
+      vi.mocked(firestore.getDocs).mockResolvedValueOnce({
+        empty: false,
+        docs: [
+          {
+            id: "log-1",
+            data: () => ({
+              santriId: "santri-001",
+              santriName: "Ahmad Dahlan",
+              jilid: "Jilid 3",
+              page: 15,
+              kelancaran: "LANCAR",
+              bonusCoin: 2,
+              notes: "Bagus",
+              ustadzId: "ustadz-123",
+            }),
+          },
+        ],
+      } as any);
+
+      const logs = await getSantriSetoranLogs("santri-001", 10);
+      expect(logs).toHaveLength(1);
+      expect(logs[0].id).toBe("log-1");
+      expect(logs[0].jilid).toBe("Jilid 3");
+      expect(logs[0].page).toBe(15);
+      expect(logs[0].bonusCoin).toBe(2);
+    });
+
+    it("falls back to unindexed query if indexed query fails", async () => {
+      // First call (with orderBy) fails
+      vi.mocked(firestore.getDocs).mockRejectedValueOnce(
+        new Error("The query requires an index")
+      );
+      // Fallback call (without orderBy) succeeds
+      vi.mocked(firestore.getDocs).mockResolvedValueOnce({
+        empty: false,
+        docs: [
+          {
+            id: "log-fallback",
+            data: () => ({
+              santriId: "santri-001",
+              santriName: "Ahmad Dahlan",
+              jilid: "Jilid 2",
+              page: 20,
+              kelancaran: "CUKUP",
+              bonusCoin: 1,
+              ustadzId: "ustadz-123",
+            }),
+          },
+        ],
+      } as any);
+
+      const logs = await getSantriSetoranLogs("santri-001", 5);
+      expect(logs).toHaveLength(1);
+      expect(logs[0].id).toBe("log-fallback");
+      expect(logs[0].kelancaran).toBe("CUKUP");
+    });
+
+    it("returns empty array when both indexed and fallback queries fail", async () => {
+      vi.mocked(firestore.getDocs).mockRejectedValueOnce(new Error("Index error"));
+      vi.mocked(firestore.getDocs).mockRejectedValueOnce(new Error("Network error"));
+
+      const logs = await getSantriSetoranLogs("santri-001");
+      expect(logs).toEqual([]);
+    });
   });
 });

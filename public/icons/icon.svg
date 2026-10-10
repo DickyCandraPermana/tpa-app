@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="128" fill="#064E3B"/>
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#F59E0B" stroke-width="4" stroke-opacity="0.3"/>
+  <!-- Open Book / Rehal Motif -->
+  <path d="M128 340 C190 320, 240 330, 256 360 C272 330, 322 320, 384 340 L384 200 C322 180, 272 190, 256 220 C240 190, 190 180, 128 200 Z" fill="#FDFBF7" stroke="#047857" stroke-width="6"/>
+  <!-- Spine Line -->
+  <path d="M256 220 L256 360" stroke="#065F46" stroke-width="6" stroke-linecap="round"/>
+  <!-- Golden Star -->
+  <path d="M256 120 L266 150 L298 150 L272 170 L282 200 L256 182 L230 200 L240 170 L214 150 L246 150 Z" fill="#F59E0B"/>
+</svg>
