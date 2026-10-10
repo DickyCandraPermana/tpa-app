@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { Nunito, Amiri } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import { UserProgressProvider } from "@/context/UserProgressContext";
+import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
 
 import type { Metadata, Viewport } from "next";
 
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id" className={`${nunito.variable} ${amiri.variable}`}>
       <body className="bg-[#FDFBF7] text-slate-800 min-h-screen antialiased">
+        <ServiceWorkerRegister />
         <AuthProvider>
           <UserProgressProvider>{children}</UserProgressProvider>
         </AuthProvider>

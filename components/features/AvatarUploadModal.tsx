@@ -135,7 +135,7 @@ export default function AvatarUploadModal({
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Avatar Preview */}
             <div className="flex flex-col items-center justify-center gap-3">
-              <div className="relative w-28 h-28 rounded-full p-1.5 bg-gradient-to-tr from-emerald-500 to-amber-400 shadow-md">
+              <div className="relative w-28 h-28 rounded-full p-1 bg-white border-2 border-emerald-600 shadow-xs">
                 <div className="relative w-full h-full rounded-full overflow-hidden bg-emerald-50 border-2 border-white">
                   <Image
                     src={displayAvatar}

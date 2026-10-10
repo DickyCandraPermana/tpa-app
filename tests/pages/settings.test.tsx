@@ -15,6 +15,15 @@ vi.mock("@/lib/auth", () => ({
   changeUserPassword: vi.fn(),
 }));
 
+vi.mock("@/lib/services/settingsService", () => ({
+  getLocalSettings: vi.fn(() => ({ soundEnabled: true, notificationEnabled: true })),
+  fetchRemoteSettings: vi.fn(async () => ({ soundEnabled: true, notificationEnabled: true })),
+  persistSettings: vi.fn(async (_uid, updates) => ({
+    soundEnabled: updates.soundEnabled ?? true,
+    notificationEnabled: updates.notificationEnabled ?? true,
+  })),
+}));
+
 describe("SettingsPage Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,6 +85,22 @@ describe("SettingsPage Component", () => {
     await waitFor(() => {
       expect(changeUserPassword).toHaveBeenCalledWith("secret123");
       expect(screen.getByText(/berhasil diperbarui/i)).toBeDefined();
+    });
+  });
+
+  it("loads settings on mount and persists when toggled", async () => {
+    const { persistSettings } = await import("@/lib/services/settingsService");
+
+    render(<SettingsPage />);
+
+    // Toggle sound
+    const soundToggle = screen.getByLabelText(/Toggle Efek Suara/i);
+    fireEvent.click(soundToggle);
+
+    await waitFor(() => {
+      expect(persistSettings).toHaveBeenCalledWith("test-user-123", {
+        soundEnabled: false,
+      });
     });
   });
 });

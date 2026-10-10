@@ -1,9 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { changeUserPassword } from "@/lib/auth";
+import {
+  getLocalSettings,
+  fetchRemoteSettings,
+  persistSettings,
+} from "@/lib/services/settingsService";
 import TactileCard from "@/components/ui/TactileCard";
 import TactileButton from "@/components/ui/TactileButton";
 import ToastNotification, { ToastType } from "@/components/ui/ToastNotification";
@@ -21,7 +26,7 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const { email, role } = useAuth();
+  const { email, role, uid } = useAuth();
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,6 +36,33 @@ export default function SettingsPage() {
   // Preference toggles
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
+
+  useEffect(() => {
+    // 1. Initial render from L1 localStorage
+    const local = getLocalSettings();
+    setSoundEnabled(local.soundEnabled);
+    setNotificationEnabled(local.notificationEnabled);
+
+    // 2. Sync with remote Firestore if authenticated
+    if (uid) {
+      fetchRemoteSettings(uid).then((remote) => {
+        setSoundEnabled(remote.soundEnabled);
+        setNotificationEnabled(remote.notificationEnabled);
+      });
+    }
+  }, [uid]);
+
+  const handleToggleSound = async () => {
+    const nextVal = !soundEnabled;
+    setSoundEnabled(nextVal);
+    await persistSettings(uid ?? null, { soundEnabled: nextVal });
+  };
+
+  const handleToggleNotification = async () => {
+    const nextVal = !notificationEnabled;
+    setNotificationEnabled(nextVal);
+    await persistSettings(uid ?? null, { notificationEnabled: nextVal });
+  };
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(
@@ -209,7 +241,8 @@ export default function SettingsPage() {
           </div>
           <button
             type="button"
-            onClick={() => setSoundEnabled(!soundEnabled)}
+            aria-label="Toggle Efek Suara"
+            onClick={handleToggleSound}
             className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
               soundEnabled ? "bg-emerald-600" : "bg-slate-300"
             }`}
@@ -237,7 +270,8 @@ export default function SettingsPage() {
           </div>
           <button
             type="button"
-            onClick={() => setNotificationEnabled(!notificationEnabled)}
+            aria-label="Toggle Notifikasi"
+            onClick={handleToggleNotification}
             className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
               notificationEnabled ? "bg-emerald-600" : "bg-slate-300"
             }`}

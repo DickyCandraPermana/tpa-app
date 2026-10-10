@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Question } from "@/types/schema";
+import { playSound } from "@/lib/audio/soundManager";
 
 export interface QuizResults {
   correctCount: number;
@@ -69,6 +70,7 @@ export function useQuizSession({
 
       const isCorrect = selected === currentQuestion.correctAnswer;
       if (isCorrect) {
+        playSound("CORRECT");
         setIsCorrectMap((prev) => ({
           ...prev,
           [currentIndex]: true,
@@ -77,6 +79,7 @@ export function useQuizSession({
         setSessionPoints((prev) => prev + points);
         onAddPoints(points);
       } else {
+        playSound("INCORRECT");
         setIsCorrectMap((prev) => ({
           ...prev,
           [currentIndex]: false,
@@ -114,6 +117,7 @@ export function useQuizSession({
     } finally {
       setIsSubmitting(false);
       setIsQuizCompleted(true);
+      playSound("STAR");
     }
   }, [onCompleteCourse, isCorrectMap, totalQuestions, sessionPoints, selectedAnswers]);
 
